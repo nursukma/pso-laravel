@@ -5,7 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 
-class ceksesi
+class revalidate
 {
     /**
      * Handle an incoming request.
@@ -16,15 +16,9 @@ class ceksesi
      */
     public function handle(Request $request, Closure $next)
     {
-        if (!session()->has('login')) {
-            return redirect('/login');
-        }
-
-        // if (session()->has('login')) {
-        //     return redirect('/');
-        // }
-
-
-        return $next($request);
+        $response = $next($request);
+        return $response->header('Cache-Control', 'nocache, no-store, max-age=0, must-revalidate')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', 'Fri, 01 Jan 1990 00:00:00 GMT');
     }
 }

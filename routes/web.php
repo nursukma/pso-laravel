@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ActivityLog;
 use App\Http\Controllers\PSOController;
 use Illuminate\Support\Facades\Route;
 // use App\Http\Middleware\AuthenticateFile;
@@ -23,7 +24,7 @@ Auth::routes();
 //     return view('login');
 // })->middleware('guest');
 
-Route::get('/login', [LoginController::class, 'index'])->name('login')->middleware('guest');
+Route::get('/login', [LoginController::class, 'index'])->name('login')->middleware('ceklogin');
 Route::post('/login', [LoginController::class, 'authenticate'])->name('login.submit');
 Route::post('/logout', [LoginController::class, 'logout']);
 
@@ -31,21 +32,37 @@ Route::post('/logout', [LoginController::class, 'logout']);
 //     return view('index');
 // })->name('login.submit')->middleware(AuthenticateFile::class);
 
-Route::group(['middleware' => 'ceksesi'], function () {
+Route::group(['middleware' => ['ceksesi', 'revalidate']], function () {
+
+    Route::resource('activity-log', ActivityLog::class);
 
     Route::get('/', function () {
-        return view('index');
+        return view('dashboard');
     });
 
-    Route::get('/data', function () {
-        return view('data');
+    Route::get('/form-data', function () {
+        return view('form-data.index');
+    });
+
+    Route::get('/table-data', function () {
+        return view('table-data.index');
     })->name('data');
 
     Route::get('/pso', [PSOController::class, 'destroy'])->name('pso.hapus');
 
     Route::post('import', [PSOController::class, 'import'])->name('pso.import');
-    Route::post('add', [PSOController::class, 'addDataBaru'])->name('pso.add');
-    Route::get('/hitung', [PSOController::class, 'hitung'])->name('pso.hitung');
 
-    // Route::get('/read', [PSOController::class, 'readText'])->name('pso.read');
+    Route::post('/hitung', [PSOController::class, 'hitung'])->name('pso.hitung');
+
+    Route::get('/search-data/{id}', [PSOController::class, 'searchData'])->name('pso.search');
+
+    Route::put('/update-data/{id}', [PSOController::class, 'updateData'])->name('pso.updateData');
+
+    Route::delete('/delete-data/{id}', [PSOController::class, 'deleteData'])->name('pso.deleteData');
+
+    Route::post('view-pdf', [PSOController::class, 'viewPDF'])->name('view-pdf');
+
+    // Route::get('/coba', function () {
+    //     return \Session::get('g_best');
+    // })->name('pso.coba');
 });

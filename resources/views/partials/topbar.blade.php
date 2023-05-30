@@ -3,8 +3,8 @@
 
      <div class="d-flex align-items-center justify-content-between">
          <a href="#" class="logo d-flex align-items-center">
-             <img src="{{ asset('build/assets/img/logo.png') }}" alt="">
-             <span class="d-none d-lg-block">ICCN</span>
+             {{-- <img src="{{ asset('build/assets/img/logo.png') }}" alt=""> --}}
+             <span class="d-none d-lg-block">e-SIM</span>
          </a>
          <i class="bi bi-list toggle-sidebar-btn"></i>
      </div><!-- End Logo -->
@@ -17,7 +17,7 @@
                  <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#"
                      data-bs-toggle="dropdown">
                      <img src="{{ asset('build/assets/img/user.png') }}" alt="Profile" class="rounded-circle">
-                     <span class="d-none d-md-block dropdown-toggle ps-2">{{ auth()->user()->name }}</span>
+                     <span class="d-none d-md-block dropdown-toggle ps-2">Admin</span>
                      {{-- <span class="d-none d-md-block dropdown-toggle ps-2">TES AKUN</span> --}}
                  </a><!-- End Profile Iamge Icon -->
 

@@ -8,14 +8,14 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
     {{-- <title>{{ $site->nama_situs }}</title> --}}
-    <title>Indonesia Creative Cities Network</title>
+    <title>SKRIPSI</title>
     <meta content="" name="description">
     <meta content="" name="keywords">
 
     <!-- Favicons -->
-    <link href="{{ asset('build/assets/img/favicon.png') }}" rel="icon">
+    {{-- <link href="{{ asset('build/assets/img/favicon.png') }}" rel="icon"> --}}
     {{-- <link href="{{ asset('storage/' . $site->image) }}" rel="apple-touch-icon"> --}}
-    <link href="{{ asset('build/assets/img/apple-touch-icon.png') }}" rel="apple-touch-icon">
+    {{-- <link href="{{ asset('build/assets/img/apple-touch-icon.png') }}" rel="apple-touch-icon"> --}}
 
     <!-- Google Fonts -->
     <link href="https://fonts.gstatic.com" rel="preconnect">
@@ -33,6 +33,8 @@
     <link href="{{ asset('build/assets/vendor/simple-datatables/style.css') }}" rel="stylesheet">
 
     {{-- Datatables --}}
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+    {{-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> --}}
     {{-- <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap5.min.css"> --}}
 
@@ -68,6 +70,9 @@
 
 
     <!-- Vendor JS Files -->
+
+    {{-- <script src="https://unpkg.com/simple-datatables@latest/dist/umd/plugins/select.min.js"></script> --}}
+
     <script src="{{ asset('build/assets/vendor/jquery/jquery.min.js') }}"></script>
     <script src="{{ asset('build/assets/vendor/apexcharts/apexcharts.min.js') }}"></script>
     <script src="{{ asset('build/assets/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
@@ -79,7 +84,8 @@
     <script src="{{ asset('build/assets/vendor/php-email-form/validate.js') }}"></script>
 
     {{-- Datatables --}}
-    {{-- <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.js"></script> --}}
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    {{-- <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js"></script> --}}
 
     {{-- Toastr js --}}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>

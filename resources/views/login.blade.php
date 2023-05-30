@@ -7,8 +7,9 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="csrf-token" content="{{ csrf_token() }}" />
 
-    <link rel="stylesheet" href="{{ asset('/build/css/app.css') }}">
-    
+    <link rel="stylesheet" href="{{ asset('/build/assets/css/app.css') }}">
+    {{-- <link href="{{ asset('build/assets/vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet"> --}}
+
     {{-- Toastr js --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
 
@@ -21,11 +22,11 @@
 
             <!-- Icon -->
             <div class="fadeIn first">
-                <img src="{{ asset('/build/img/user.png') }}" alt="User Icon" width="120px" height="120px" />
+                <img src="{{ asset('/build/assets/img/user.png') }}" alt="User Icon" width="120px" height="120px" />
             </div>
 
             <!-- Login Form -->
-            <form method="POST" action="{{ route('login.submit') }}">
+            <form class="needs-validation" method="POST" action="{{ route('login.submit') }}" novalidate>
                 @csrf
                 <input type="text" name="username" id="username" class="fadeIn second" placeholder="username">
                 <input type="password" name="password" id="password" class="fadeIn third" placeholder="password">
@@ -40,7 +41,11 @@
         </div>
     </div>
 
-     {{-- Toastr js --}}
+    <script src="{{ asset('build/assets/vendor/jquery/jquery.min.js') }}"></script>
+    <!-- Template Main JS File -->
+    <script src="{{ asset('build/assets/js/main.js') }}"></script>
+
+    {{-- Toastr js --}}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
 
     <script>
@@ -60,15 +65,6 @@
                 "positionClass": "toast-top-right"
             };
             toastr.error("{{ session('error') }}");
-        @endif
-
-        @if (Session::has('info'))
-            toastr.options = {
-                "closeButton": true,
-                "progressBar": true,
-                "positionClass": "toast-top-right"
-            };
-            toastr.info("{{ session('info') }}");
         @endif
 
         @if (Session::has('warning'))

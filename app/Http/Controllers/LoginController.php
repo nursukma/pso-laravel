@@ -8,6 +8,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 
 class LoginController extends Controller
 {
@@ -20,6 +21,11 @@ class LoginController extends Controller
     {
         $username = $request->input('username');
         $password = $request->input('password');
+
+        if ($username == '' || $password == '') {
+            return back()->with('warning', 'Silakan isi username / password!');
+        }
+
         $rand = round(0 + mt_rand() / mt_getrandmax() * (1.0 - 0), 2);
 
         // Read the user credentials from the text file
@@ -28,15 +34,12 @@ class LoginController extends Controller
 
         if ($username === $users[0] && $password === $users[1]) {
             // Credentials match, store the user details in the session
-            // $login = [
-            //     'username' => $username,
-            //     'password' => $password
-            // ];
-            // auth()->loginUsingId($users[0]);
+            $arr = ["aktivitas" => ["Login"], "waktu" => [Carbon::now()->format('H:i:m')]];
+
             session(['login' => $username . $rand . $password]);
-            // return $next($request);
+            session(["history" => $arr]);
+
             return redirect()->intended('/')->with('message', 'Berhasil masuk sistem');
-            // dd(auth()->check());
         }
 
         // if (Auth::login($login)) {
@@ -46,12 +49,13 @@ class LoginController extends Controller
         // }
 
         // Credentials do not match, redirect to the login page
-        return back()->with('error', 'Invalid credentials.');
+        return redirect('/login')->with('error', 'Username atau password salah!');
     }
 
     public function logout(Request $request)
     {
-
+        Auth::logout();
+        // $request->session()->flush();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         return redirect('/login')->with('message', 'Berhasil keluar sistem');

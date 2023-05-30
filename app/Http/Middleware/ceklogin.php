@@ -5,7 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 
-class ceksesi
+class ceklogin
 {
     /**
      * Handle an incoming request.
@@ -16,14 +16,9 @@ class ceksesi
      */
     public function handle(Request $request, Closure $next)
     {
-        if (!session()->has('login')) {
-            return redirect('/login');
+        if (session()->has('login')) {
+            return redirect('/');
         }
-
-        // if (session()->has('login')) {
-        //     return redirect('/');
-        // }
-
 
         return $next($request);
     }

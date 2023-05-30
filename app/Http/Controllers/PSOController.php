@@ -11,6 +11,10 @@ use Illuminate\Support\Facades\Redirect;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Storage;
 
+use Illuminate\Support\Carbon;
+
+use PDF;
+
 class PSOController extends Controller
 {
     const populasi = [
@@ -118,16 +122,35 @@ class PSOController extends Controller
     public function destroy(Request $request)
     {
         $request->session()->forget('data');
-        return redirect('/');
+        $request->session()->forget('target');
+        $request->session()->forget('nama_berkas');
+
+        $history = session()->get('history');
+        $history['aktivitas'][count($history['aktivitas'])] = "Hapus";
+        $history['waktu'][count($history['waktu'])] = Carbon::now()->format('H:i:m');
+
+        $request->session()->put('history', $history);
+
+        return back()->with('message', 'Data berhasil dibersihkan');
     }
 
     public function hitung(Request $request)
     {
+        set_time_limit(0);
+
+        if (!session()->has('data'))
+            return back()->with('error', 'Belum terdapat data!');
+
         if (!$request->iter)
-            return redirect('/data')->with('error', 'Silakan masukkan jumlah iterasi!');
+            return redirect('/table-data')->with('error', 'Silakan masukkan jumlah iterasi!');
+
+        if (!$request->partikel)
+            return redirect('/table-data')->with('error', 'Silakan masukkan jumlah partikel!');
 
         $klasifikasi = $request->session()->get('data');
         $target = $request->session()->get('target');
+
+        $populasi = $this->randomPartikel($request->partikel);
 
         $start = 0;
         $iter = $request->iter;
@@ -156,6 +179,8 @@ class PSOController extends Controller
         $total_kali = array(array());
         $arrayCopy = array(array());
 
+        $arrayR = [];
+
         // $cekSelisih = array(array());
         // ======================================== //
 
@@ -177,7 +202,7 @@ class PSOController extends Controller
                             $totalSementara += $klasifikasi[$j][$i] * $arrayCopy[$k][$i];
                             $pembagi += $arrayCopy[$k][$i];
                         }
-                        $total_kali[$k][$j] = round($totalSementara / $pembagi, 2);
+                        $total_kali[$k][$j] = round($totalSementara / $pembagi, 5);
                     }
                 }
 
@@ -188,7 +213,7 @@ class PSOController extends Controller
                     $total_selisih = 0;
                     for ($i = 0; $i < count($total_kali[$x]); $i++) {
                         $total[$x][$i] = abs($total_kali[$x][$i] - $target[$i]);
-                        $total_selisih += round(abs($total_kali[$x][$i] - $target[$i]), 2);
+                        $total_selisih += round(abs($total_kali[$x][$i] - $target[$i]), 5);
                         // $total[$x][$i] = abs($total_kali[$x][$i] - self::target[$i]);
                         // $total_selisih += round(abs($total_kali[$x][$i] - self::target[$i]), 2);
                     }
@@ -198,7 +223,7 @@ class PSOController extends Controller
 
                 // MENGHITUNG NILAI FITNESS
                 for ($x = 0; $x < count($hasil_selisih); $x++) {
-                    $hasil_fitness[$x] = round(1 / $hasil_selisih[$x], 2);
+                    $hasil_fitness[$x] = round(1 / $hasil_selisih[$x], 5);
                 }
                 // ================================= //
 
@@ -215,19 +240,18 @@ class PSOController extends Controller
                     if ($g_best < $max) {
                         $g_best = $max;
                     }
-                    $solusi_akhir = array("Solusi" => self::populasi[$index_max], "GBest" => $g_best);
+
+                    // Random Populasi
+                    $solusi_akhir = array("Solusi" => $populasi[$index_max], "GBest" => $g_best, 'iterasi' => $iter);
                 }
                 // ============================ //
 
                 // MENGHITUNG VELOCITY
                 for ($k = 0; $k < count($arrayCopy); $k++) {
                     for ($j = 0; $j < count($arrayCopy[$k]); $j++) {
-                        // $hasil_velocity[$k][$j] = round(($b_inersia * $hasil_velocity[$k][$j]) +
-                        //     (($c1 * $r1[1]) * ($p_best[$k] - $arrayCopy[$k][$j])) +
-                        //     (($c2 * $r2[1]) * ($g_best - $arrayCopy[$k][$j])), 2);
                         $hasil_velocity[$k][$j] = round(($b_inersia * $hasil_velocity[$k][$j]) +
                             (($c1 * $r1) * ($p_best[$k] - $arrayCopy[$k][$j])) +
-                            (($c2 * $r2) * ($g_best - $arrayCopy[$k][$j])), 2);
+                            (($c2 * $r2) * ($g_best - $arrayCopy[$k][$j])), 5);
                     }
                 }
                 // ============================ //
@@ -240,16 +264,17 @@ class PSOController extends Controller
                 }
                 // ==================== //
             } else {
-                // PERHTIUNGAN PARTIKEL KALI DATA AWAL
+
+                // Random populasi
                 for ($j = 0; $j < count($klasifikasi); $j++) {
-                    for ($k = 0; $k < count(self::populasi); $k++) {
+                    for ($k = 0; $k < count($populasi); $k++) {
                         $totalSementara = 0;
                         $pembagi = 0;
                         for ($i = 0; $i < count($klasifikasi[$j]); $i++) {
-                            $totalSementara += $klasifikasi[$j][$i] * self::populasi[$k][$i];
-                            $pembagi += self::populasi[$k][$i];
+                            $totalSementara += $klasifikasi[$j][$i] * $populasi[$k][$i];
+                            $pembagi += $populasi[$k][$i];
                         }
-                        $total_kali[$k][$j] = round($totalSementara / $pembagi, 2);
+                        $total_kali[$k][$j] = round($totalSementara / $pembagi, 5);
                     }
                 }
 
@@ -260,9 +285,7 @@ class PSOController extends Controller
                     $total_selisih = 0;
                     for ($i = 0; $i < count($total_kali[$x]); $i++) {
                         $total[$x][$i] = abs($total_kali[$x][$i] - $target[$i]);
-                        $total_selisih += round(abs($total_kali[$x][$i] - $target[$i]), 2);
-                        // $total[$x][$i] = abs($total_kali[$x][$i] - self::target[$i]);
-                        // $total_selisih += abs($total_kali[$x][$i] - self::target[$i]);
+                        $total_selisih += round(abs($total_kali[$x][$i] - $target[$i]), 5);
                     }
                     $hasil_selisih[$x] = $total_selisih;
                 }
@@ -270,14 +293,15 @@ class PSOController extends Controller
 
                 // MENGHITUNG NILAI FITNESS
                 for ($x = 0; $x < count($hasil_selisih); $x++) {
-                    $hasil_fitness[$x] = round(1 / $hasil_selisih[$x], 2);
+                    if ($hasil_selisih[$x] == 0)
+                        return back()->with('warning', 'Data target tidak valid!');
+                    $hasil_fitness[$x] = round(1 / $hasil_selisih[$x], 5);
                 }
                 // ================================= //
 
                 // MENCARI GBEST DAN PBEST 
                 for ($x = 0; $x < count($hasil_fitness); $x++) {
                     $max = max($hasil_fitness);
-                    // $index_max = max(array_keys($hasil_fitness));
                     $index_max = array_search(max($hasil_fitness), $hasil_fitness);
 
                     if (empty($p_best)) {
@@ -287,208 +311,350 @@ class PSOController extends Controller
                     if ($g_best == 0) {
                         $g_best = $max;
                     }
-                    $solusi_akhir = array("Solusi" => self::populasi[$index_max], "GBest" => $g_best);
+
+                    // Random Populasi
+                    $solusi_akhir = array("Solusi" => $populasi[$index_max], "GBest" => $g_best, 'iterasi' => $iter);
                 }
                 // ============================ //
 
-                // MENGHITUNG VELOCITY
-                for ($k = 0; $k < count(self::populasi); $k++) {
-                    for ($j = 0; $j < count(self::populasi[$k]); $j++) {
-                        // $hasil_velocity[$k][$j] = round(($b_inersia * $velocity) +
-                        //     (($c1 * $r1[0]) * ($p_best[$k] - self::populasi[$k][$j])) +
-                        //     (($c2 * $r2[0]) * ($g_best - self::populasi[$k][$j])), 2);
+                // Random Populasi
+                for ($k = 0; $k < count($populasi); $k++) {
+                    for ($j = 0; $j < count($populasi[$k]); $j++) {
                         $hasil_velocity[$k][$j] = round(($b_inersia * $velocity) +
-                            (($c1 * $r1) * ($p_best[$k] - self::populasi[$k][$j])) +
-                            (($c2 * $r2) * ($g_best - self::populasi[$k][$j])), 2);
+                            (($c1 * $r1) * ($p_best[$k] - $populasi[$k][$j])) +
+                            (($c2 * $r2) * ($g_best - $populasi[$k][$j])), 5);
                     }
                 }
                 // ============================ //
 
-                // MEMPERBARUI POSISI X
-                for ($k = 0; $k < count(self::populasi); $k++) {
-                    for ($j = 0; $j < count(self::populasi[$k]); $j++) {
-                        $posisi_x[$k][$j] = self::populasi[$k][$j] + $hasil_velocity[$k][$j];
+                // Random Populasi
+                for ($k = 0; $k < count($populasi); $k++) {
+                    for ($j = 0; $j < count($populasi[$k]); $j++) {
+                        $posisi_x[$k][$j] = $populasi[$k][$j] + $hasil_velocity[$k][$j];
                     }
                 }
                 // ==================== //
             }
             // ===================================== //
 
+            array_push($arrayR, $g_best);
             $start++;
         };
 
-        return view('hitung')->with(['data' => $solusi_akhir]);
+        $history = session()->get('history');
+        $history['aktivitas'][count($history['aktivitas'])] = "Hitung";
+        $history['waktu'][count($history['waktu'])] = Carbon::now()->format('H:i:m');
+
+        $request->session()->put('history', $history);
+
+        $request->session()->put('g_best', $arrayR);
+        $request->session()->put('g_best', $arrayR);
+        $request->session()->put('solusi_akhir', $solusi_akhir);
+
+        $request->session()->put('exeTime', $this->execTime());
+
+
+        return view('hasil-data.index')->with(['data' => $solusi_akhir]);
         // return (["r1" => $r1, "r2" => $r2]);
+        // dd($total_kali);
     }
 
 
     public function tampil()
     {
-        return round(0 + mt_rand() / mt_getrandmax() * (1.0 - 0), 2);
+        return round(0 + mt_rand() / mt_getrandmax() * (1.0 - 0), 5);
     }
 
     public function import(Request $request)
     {
+        if (!$request->hasFile('file') && ($request->bdv == 0 || $request->water == 0 || $request->acidity == 0 || $request->ift == 0 || $request->color == 0 || $request->target == 0)) {
+            // return dd("DATA KOSONG");
+            return back()->with('error', 'Data yang dimasukkan tidak valid!');
+        }
+
         if (!$request->hasFile('file') && (!$request->bdv || !$request->water || !$request->acidity || !$request->ift || !$request->color || !$request->target)) {
             // return dd("DATA KOSONG");
-            return redirect('/')->with('error', 'Silakan isi data terlebih dahulu!');
+            return back()->with('error', 'Silakan isi data terlebih dahulu!');
         }
 
-        if ($request->hasFile('file') && (!$request->bdv || !$request->water || !$request->acidity || !$request->ift || !$request->color || !$request->target)) {
-            // import excel
-            $fix = Excel::toArray(new ModelImport, request()->file('file'));
 
-            for ($i = 0; $i < count($fix); $i++) {
-                for ($j = 0; $j < count($fix[$i]); $j++) {
-                    for ($k = 0; $k < count($fix[$i][$j]); $k++) {
-                        if ($k != 5) {
-                            $this->data[$j][$k] = $fix[$i][$j][$k];
-                        } else {
-                            $this->target[$j] = $fix[$i][$j][$k];
+        if (session()->has('data') && session()->has('target')) {
+            if (!$request->hasFile('file') && $request->bdv && $request->water && $request->acidity && $request->ift && $request->color && $request->target) {
+                $data =  $request->session()->get('data');
+                $target = $request->session()->get('target');
+
+                $jmlData = count($data);
+
+                if ($jmlData > 0) {
+                    $data[$jmlData] = [0 => $request->bdv, 1 => $request->water, 2 => $request->acidity, 3 => $request->ift, 4 => $request->color];
+                    $target[$jmlData] = $request->target;
+                } else {
+                    $data[] = [0 => $request->bdv, 1 => $request->water, 2 => $request->acidity, 3 => $request->ift, 4 => $request->color];
+                    $target[] = $request->target;
+                }
+
+                $this->data = $data;
+
+                $history = session()->get('history');
+                $history['aktivitas'][count($history['aktivitas'])] = "Input";
+                $history['waktu'][count($history['waktu'])] = Carbon::now()->format('H:i:m');
+
+                $request->session()->put('history', $history);
+
+                $request->session()->put('data', $data);
+                $request->session()->put('target', $target);
+
+                // dd($request->session()->get('target'));
+                // return view('table-data.index')->with(['data' => $data]);
+                return back()->with('message', 'Berhasil tambah data!');
+            }
+
+            if ($request->hasFile('file') && (!$request->bdv || !$request->water || !$request->acidity || !$request->ift || !$request->color || !$request->target)) {
+                // import excel
+                $fix = Excel::toArray(new ModelImport, request()->file('file'));
+
+                for ($i = 0; $i < count($fix); $i++) {
+                    for ($j = 0; $j < count($fix[$i]); $j++) {
+                        for ($k = 0; $k < count($fix[$i][$j]); $k++) {
+                            if ($k != 5) {
+                                $this->data[$j][$k] = $fix[$i][$j][$k];
+                            } else {
+                                $this->target[$j] = $fix[$i][$j][$k];
+                            }
                         }
                     }
                 }
+
+                $data = array_merge($request->session()->get('data'), $this->data);
+                $target = array_merge($request->session()->get('target'), $this->target);
+
+                $history = session()->get('history');
+                $history['aktivitas'][count($history['aktivitas'])] = "Upload";
+                $history['waktu'][count($history['waktu'])] = Carbon::now()->format('H:i:m');
+
+                $request->session()->put('history', $history);
+
+                $request->session()->put('data', $data);
+                $request->session()->put('target', $target);
+
+                // dd($request->session()->get('target'));
+                // return view('table-data.index')->with(['data' => $data]);
+                return back()->with('message', 'Berhasil tambah data!');
             }
 
-            $request->session()->put('data', $this->data);
-            $request->session()->put('target', $this->target);
+            if ($request->hasFile('file') && $request->bdv && $request->water && $request->acidity && $request->ift && $request->color  && $request->target) {
+                // import excel
+                $arr = [];
+                $fix = Excel::toArray(new ModelImport, request()->file('file'));
+                // foreach ($fix as $data1) {
+                //     $arr = $data1;
+                // }
 
-            // dd($request->session()->get('target'));
-            return view('data')->with(['data' => $this->data]);
-        }
-
-        if ($request->hasFile('file') && $request->bdv && $request->water && $request->acidity && $request->ift && $request->color && $request->target) {
-            // import excel
-            $fix = Excel::toArray(new ModelImport, request()->file('file'));
-
-            for ($i = 0; $i < count($fix); $i++) {
-                for ($j = 0; $j < count($fix[$i]); $j++) {
-                    for ($k = 0; $k < count($fix[$i][$j]); $k++) {
-                        if ($k != 5) {
-                            $this->data[$j][$k] = $fix[$i][$j][$k];
-                        } else {
-                            $this->target[$j] = $fix[$i][$j][$k];
+                for ($i = 0; $i < count($fix); $i++) {
+                    for ($j = 0; $j < count($fix[$i]); $j++) {
+                        for ($k = 0; $k < count($fix[$i][$j]); $k++) {
+                            if ($k != 5) {
+                                $this->data[$j][$k] = $fix[$i][$j][$k];
+                            } else {
+                                $this->target[$j] = $fix[$i][$j][$k];
+                            }
                         }
                     }
                 }
+
+                $history = session()->get('history');
+                $history['aktivitas'][count($history['aktivitas'])] = "Upload";
+                $history['aktivitas'][count($history['aktivitas'])] = "Input";
+                $history['waktu'][count($history['waktu']) + 1] = Carbon::now()->format('H:i:m');
+                $history['waktu'][count($history['waktu']) + 1] = Carbon::now()->format('H:i:m');
+
+                $request->session()->put('history', $history);
+
+                $data = array_merge($request->session()->get('data'), $this->data);
+                $target = array_merge($request->session()->get('target'), $this->target);
+
+                $data[count($data)] = [0 => $request->bdv, 1 => $request->water, 2 => $request->acidity, 3 => $request->ift, 4 => $request->color];
+                $target[count($target)] = $request->target;
+
+                $request->session()->put('data', $data);
+                $request->session()->put('target', $target);
+
+                // dd($request->session()->get('target'));
+                // return view('table-data.index')->with(['data' => $data]);
+                return back()->with('message', 'Berhasil tambah data!');
+            }
+        } else {
+            if ($request->hasFile('file') && (!$request->bdv || !$request->water || !$request->acidity || !$request->ift || !$request->color || !$request->target)) {
+                // import excel
+                $fix = Excel::toArray(new ModelImport, request()->file('file'));
+
+                for ($i = 0; $i < count($fix); $i++) {
+                    for ($j = 0; $j < count($fix[$i]); $j++) {
+                        for ($k = 0; $k < count($fix[$i][$j]); $k++) {
+                            if ($k != 5) {
+                                $this->data[$j][$k] = $fix[$i][$j][$k];
+                            } else {
+                                $this->target[$j] = $fix[$i][$j][$k];
+                            }
+                        }
+                    }
+                }
+
+                $history = session()->get('history');
+                $history['aktivitas'][count($history['aktivitas'])] = "Upload";
+                $history['waktu'][count($history['waktu'])] = Carbon::now()->format('H:i:m');
+
+                $request->session()->put('history', $history);
+
+
+                $request->session()->put('data', $this->data);
+                $request->session()->put('target', $this->target);
+                $request->session()->put('nama_berkas', $request->file('file')->getClientOriginalName());
+
+                // dd($request->session()->get('target'));
+                // return view('table-data.index')->with(['data' => $this->data]);
+                return back()->with('message', 'Berhasil tambah data!');
             }
 
-            $this->data[count($this->data)] = [0 => $request->bdv, 1 => $request->water, 2 => $request->acidity, 3 => $request->ift, 4 => $request->color];
-            $this->target[count($this->target)] = $request->target;
+            if ($request->hasFile('file') && $request->bdv && $request->water && $request->acidity && $request->ift && $request->color && $request->target) {
+                // import excel
+                $fix = Excel::toArray(new ModelImport, request()->file('file'));
 
-            $request->session()->put('data', $this->data);
-            $request->session()->put('target', $this->target);
+                for ($i = 0; $i < count($fix); $i++) {
+                    for ($j = 0; $j < count($fix[$i]); $j++) {
+                        for ($k = 0; $k < count($fix[$i][$j]); $k++) {
+                            if ($k != 5) {
+                                $this->data[$j][$k] = $fix[$i][$j][$k];
+                            } else {
+                                $this->target[$j] = $fix[$i][$j][$k];
+                            }
+                        }
+                    }
+                }
 
-            // dd($request->session()->get('target'));
-            return view('data')->with(['data' => $this->data]);
-        }
+                $this->data[count($this->data)] = [0 => $request->bdv, 1 => $request->water, 2 => $request->acidity, 3 => $request->ift, 4 => $request->color];
+                $this->target[count($this->target)] = $request->target;
 
-        if (!$request->hasFile('file') && $request->bdv && $request->water && $request->acidity && $request->ift && $request->color && $request->target) {
-            $this->data[] = [0 => $request->bdv, 1 => $request->water, 2 => $request->acidity, 3 => $request->ift, 4 => $request->color];
-            $this->target[] = $request->target;
+                $history = session()->get('history');
+                $history['aktivitas'][count($history['aktivitas'])] = "Upload";
+                $history['aktivitas'][count($history['aktivitas'])] = "Input";
+                $history['waktu'][count($history['waktu']) + 1] = Carbon::now()->format('H:i:m');
+                $history['waktu'][count($history['waktu']) + 1] = Carbon::now()->format('H:i:m');
 
-            $request->session()->put('data', $this->data);
-            $request->session()->put('target', $this->target);
+                $request->session()->put('history', $history);
 
-            // dd($request->session()->get('target'));
-            return view('data')->with(['data' => $this->data]);
+                $request->session()->put('data', $this->data);
+                $request->session()->put('target', $this->target);
+
+                // dd($request->session()->get('target'));
+                // return view('table-data.index')->with(['data' => $this->data]);
+                return back()->with('message', 'Berhasil tambah data!');
+            }
+
+            if (!$request->hasFile('file') && $request->bdv && $request->water && $request->acidity && $request->ift && $request->color && $request->target) {
+                $this->data[] = [0 => $request->bdv, 1 => $request->water, 2 => $request->acidity, 3 => $request->ift, 4 => $request->color];
+                $this->target[] = $request->target;
+
+                $history = session()->get('history');
+                $history['aktivitas'][count($history['aktivitas'])] = "Input";
+                $history['waktu'][count($history['waktu'])] = Carbon::now()->format('H:i:m');
+
+                $request->session()->put('history', $history);
+
+                $request->session()->put('data', $this->data);
+                $request->session()->put('target', $this->target);
+
+                // dd($request->session()->get('target'));
+                // return view('table-data.index')->with(['data' => $this->data]);
+                return back()->with('message', 'Berhasil tambah data!');
+            }
         }
     }
 
-    public function addDataBaru(Request $request)
+    public function randomPartikel($jml)
     {
-        if (!$request->hasFile('file') && (!$request->bdv || !$request->water || !$request->acidity || !$request->ift || !$request->color || !$request->target)) {
-            // return dd("DATA KOSONG");
-            return redirect('/data')->with('error', 'Silakan isi data terlebih dahulu!');
-        }
+        $arr = array(array());
 
-        if (!$request->hasFile('file') && $request->bdv && $request->water && $request->acidity && $request->ift && $request->color && $request->target) {
-            $data =  $request->session()->get('data');
-            $target = $request->session()->get('target');
-
-            $jmlData = count($data);
-
-            if ($jmlData > 0) {
-                $data[$jmlData] = [0 => $request->bdv, 1 => $request->water, 2 => $request->acidity, 3 => $request->ift, 4 => $request->color];
-                $target[$jmlData] = $request->target;
-            } else {
-                $data[] = [0 => $request->bdv, 1 => $request->water, 2 => $request->acidity, 3 => $request->ift, 4 => $request->color];
-                $target[] = $request->target;
+        for ($i = 0; $i < $jml; $i++) {
+            for ($j = 0; $j < 5; $j++) {
+                $arr[$i][$j] = $this->tampil();
             }
-
-            $this->data = $data;
-
-            $request->session()->put('data', $data);
-            $request->session()->put('target', $target);
-
-            // dd($request->session()->get('target'));
-            return view('data')->with(['data' => $data]);
         }
 
-        if ($request->hasFile('file') && (!$request->bdv || !$request->water || !$request->acidity || !$request->ift || !$request->color || !$request->target)) {
-            // import excel
-            $fix = Excel::toArray(new ModelImport, request()->file('file'));
-
-            for ($i = 0; $i < count($fix); $i++) {
-                for ($j = 0; $j < count($fix[$i]); $j++) {
-                    for ($k = 0; $k < count($fix[$i][$j]); $k++) {
-                        if ($k != 5) {
-                            $this->data[$j][$k] = $fix[$i][$j][$k];
-                        } else {
-                            $this->target[$j] = $fix[$i][$j][$k];
-                        }
-                    }
-                }
-            }
-
-            $data = array_merge($request->session()->get('data'), $this->data);
-            $target = array_merge($request->session()->get('target'), $this->target);
-
-            $request->session()->put('data', $data);
-            $request->session()->put('target', $target);
-
-            // dd($request->session()->get('target'));
-            return view('data')->with(['data' => $data]);
-        }
-
-        if ($request->hasFile('file') && $request->bdv && $request->water && $request->acidity && $request->ift && $request->color  && $request->target) {
-            // import excel
-            $arr = [];
-            $fix = Excel::toArray(new ModelImport, request()->file('file'));
-            // foreach ($fix as $data1) {
-            //     $arr = $data1;
-            // }
-
-            for ($i = 0; $i < count($fix); $i++) {
-                for ($j = 0; $j < count($fix[$i]); $j++) {
-                    for ($k = 0; $k < count($fix[$i][$j]); $k++) {
-                        if ($k != 5) {
-                            $this->data[$j][$k] = $fix[$i][$j][$k];
-                        } else {
-                            $this->target[$j] = $fix[$i][$j][$k];
-                        }
-                    }
-                }
-            }
-
-            $data = array_merge($request->session()->get('data'), $this->data);
-            $target = array_merge($request->session()->get('target'), $this->target);
-
-            $data[count($data)] = [0 => $request->bdv, 1 => $request->water, 2 => $request->acidity, 3 => $request->ift, 4 => $request->color];
-            $target[count($target)] = $request->target;
-
-            $request->session()->put('data', $data);
-            $request->session()->put('target', $target);
-
-            // dd($request->session()->get('target'));
-            return view('data')->with(['data' => $data]);
-        }
-    }
-
-    public function readText()
-    {
-        $contents = Storage::disk('public')->get('login.txt');
-        $arr = explode(',', $contents);
         return $arr;
+    }
+
+    public function coba()
+    {
+        $data = $this->randomPartikel(5);
+        dd($data);
+    }
+
+    public function searchData($id)
+    {
+        $data = session()->get('data');
+        $target = session()->get('target');
+
+        $dataBaru = $data[$id];
+        $targetBaru = round($target[$id], 5);
+        $jmlData = count($dataBaru);
+
+        $final = $dataBaru;
+        $final[$jmlData] = $targetBaru;
+
+        // return $final;
+        return response()->json($final);
+    }
+
+    public function updateData(Request $request, $id)
+    {
+        $data = session()->get('data');
+        $target = session()->get('target');
+
+        $data[$id] =  [0 => $request->bdv, 1 => $request->water, 2 => $request->acidity, 3 => $request->ift, 4 => $request->color];
+        $target[$id] = $request->target;
+
+        $request->session()->put('data', $data);
+        $request->session()->put('target', $target);
+
+        return redirect('/table-data')->with('message', 'Berhasil mengubah data!');
+    }
+
+    public function deleteData($id)
+    {
+        $data = session()->get('data');
+        $target = session()->get('target');
+
+        if (array_splice($data, $id, 1) &&  array_splice($target, $id, 1)) {
+            // array_splice($data, $id, 1);
+            // array_splice($target, $id, 1);
+
+            session()->put('data', $data);
+            session()->put('target', $target);
+
+            return redirect('/table-data')->with('message', 'Berhasil menghapus data!');
+        }
+        // dd($data);
+    }
+
+    public function execTime()
+    {
+        $start = microtime(true);
+
+        // Your code here
+
+        $end = microtime(true);
+        $executionTime = ($end - $start) * 1000; // milliseconds
+        return $executionTime;
+    }
+
+    public function viewPDF()
+    {
+        $data = session()->get('solusi_akhir');
+        $pdf = PDF::loadView('export.pdf', array('data' =>  $data))
+            ->setPaper('a4', 'portrait')->setOptions(['defaultFont' => 'sans-serif']);
+        // $pdf = PDF::loadHTML('<h1>TES</h1>'); 
+        return $pdf->stream();
+        // dd($data);
     }
 }
