@@ -39,6 +39,17 @@
                 </div>
                 <div class="col-xxl-4 col-xl-4 col-md-4 col-sm-4">
                     <div class="card">
+                        <div class="filter">
+                            <a class="icon" href="#" data-bs-toggle="dropdown"><i
+                                    class="bi bi-question-circle"></i></a>
+                            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                                <li class="dropdown-header text-start">
+                                    <h6>Contoh Format Excel</h6>
+                                </li>
+
+                                <li><a class="dropdown-item" href="{{ route('download-contoh') }}">Unduh</a></li>
+                            </ul>
+                        </div>
                         <div class="card-body profile-card pt-4 d-flex flex-column align-items-center">
                             <img src="{{ asset('build/assets/img/home.png') }}" class="img-preview"
                                 style="width: 120px; height: 150px; object-fit: cover" />
@@ -47,15 +58,6 @@
                         </div>
                     </div>
                 </div>
-
-                {{-- <div class="col-xxl-8 col-xl-8 col-md-8 col-sm-8">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Chart Perhitungan Terakhir</h5>
-                            <div id="chart"></div>
-                        </div>
-                    </div>
-                </div> --}}
             </div>
         </div>
     </main>

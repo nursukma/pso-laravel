@@ -62,6 +62,8 @@ Route::group(['middleware' => ['ceksesi', 'revalidate']], function () {
 
     Route::post('view-pdf', [PSOController::class, 'viewPDF'])->name('view-pdf');
 
+    Route::get('contoh-excel', [PSOController::class, 'downloadPdfFile'])->name('download-contoh');
+
     // Route::get('/coba', function () {
     //     return \Session::get('g_best');
     // })->name('pso.coba');

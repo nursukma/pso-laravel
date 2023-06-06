@@ -72,48 +72,54 @@
                                 <div class="row mb-3">
                                     <label for="bdv" class="col-md-4 col-lg-3 col-form-label">BDV</label>
                                     <div class="col-md-8 col-lg-9">
-                                        <input name="bdv" type="text" class="form-control" id="bdv"
-                                            onkeypress="return isNumberKey(this, event);" placeholder="0.1-0.2">
+                                        <input name="bdv" type="text" class="form-control range-data" id="bdv"
+                                            onkeypress="return isNumberKey(this, event);"
+                                            placeholder="Masukkan nilai rentang 1-4">
                                     </div>
                                 </div>
 
                                 <div class="row mb-3">
                                     <label for="water" class="col-md-4 col-lg-3 col-form-label">Water</label>
                                     <div class="col-md-8 col-lg-9">
-                                        <input name="water" type="text" class="form-control" id="water"
-                                            onkeypress="return isNumberKey(this, event);">
+                                        <input name="water" type="text" class="form-control range-data" id="water"
+                                            onkeypress="return isNumberKey(this, event);"
+                                            placeholder="Masukkan nilai rentang 1-4">
                                     </div>
                                 </div>
 
                                 <div class="row mb-3">
                                     <label for="acidity" class="col-md-4 col-lg-3 col-form-label">Acidity</label>
                                     <div class="col-md-8 col-lg-9">
-                                        <input name="acidity" type="text" class="form-control" id="acidity"
-                                            onkeypress="return isNumberKey(this, event);">
+                                        <input name="acidity" type="text" class="form-control range-data" id="acidity"
+                                            onkeypress="return isNumberKey(this, event);"
+                                            placeholder="Masukkan nilai rentang 1-4">
                                     </div>
                                 </div>
 
                                 <div class="row mb-3">
                                     <label for="ift" class="col-md-4 col-lg-3 col-form-label">IFT</label>
                                     <div class="col-md-8 col-lg-9">
-                                        <input name="ift" type="text" class="form-control" id="ift"
-                                            onkeypress="return isNumberKey(this, event);">
+                                        <input name="ift" type="text" class="form-control range-data" id="ift"
+                                            onkeypress="return isNumberKey(this, event);"
+                                            placeholder="Masukkan nilai rentang 1-4">
                                     </div>
                                 </div>
 
                                 <div class="row mb-3">
                                     <label for="color" class="col-md-4 col-lg-3 col-form-label">Color</label>
                                     <div class="col-md-8 col-lg-9">
-                                        <input name="color" type="text" class="form-control" id="color"
-                                            onkeypress="return isNumberKey(this, event);">
+                                        <input name="color" type="text" class="form-control range-data" id="color"
+                                            onkeypress="return isNumberKey(this, event);"
+                                            placeholder="Masukkan nilai rentang 1-4">
                                     </div>
                                 </div>
 
                                 <div class="row mb-3">
                                     <label for="target" class="col-md-4 col-lg-3 col-form-label">Target</label>
                                     <div class="col-md-8 col-lg-9">
-                                        <input name="target" type="text" class="form-control" id="target"
-                                            onkeypress="return isNumberKey(this, event);">
+                                        <input name="target" type="text" class="form-control range-target"
+                                            id="target" onkeypress="return isNumberKey(this, event);"
+                                            placeholder="Masukkan nilai rentang 1-4">
                                     </div>
                                 </div>
 
@@ -162,10 +168,6 @@
             const excel_name = document.querySelector('#excel_name');
 
             var nama_berkas = document.querySelector('#nama_berkas');
-            // const imgPreview = document.querySelector('.img-preview');
-
-            // imgPreview.style.display = 'block';
-            // imgPreview.style.objectFit = 'cover';
 
             const reader = new FileReader();
             reader.readAsDataURL(excel.files[0]);
@@ -173,8 +175,6 @@
             var fileName = document.getElementById("up_file").value;
             var idxDot = fileName.lastIndexOf(".") + 1;
             var extFile = fileName.substr(idxDot, fileName.length).toLowerCase();
-
-            // const fileSize = excel.files[0].size / 1024 / 1024; // in MiB
 
             if (extFile == "xlsx") {
                 const reader = new FileReader();
@@ -223,5 +223,36 @@
                 }
             });
         }
+    </script>
+
+    <script>
+        const inputs = document.querySelectorAll('.range-data');
+
+        // Add an input event listener to each input element
+        inputs.forEach(function(input) {
+            input.addEventListener('input', function(event) {
+                const value = parseFloat(event.target.value);
+
+                if (isNaN(value) || value < 1 || value > 4) {
+                    // Clear the input value if it's not a valid number between 0 and 1
+                    event.target.value = '';
+                }
+            });
+        });
+    </script>
+    <script>
+        const target = document.querySelectorAll('.range-target');
+
+        // Add an input event listener to each input element
+        target.forEach(function(input) {
+            input.addEventListener('input', function(event) {
+                const value = parseFloat(event.target.value);
+
+                if (isNaN(value) || value < 0 || value > 4) {
+                    // Clear the input value if it's not a valid number between 0 and 1
+                    event.target.value = '';
+                }
+            });
+        });
     </script>
 @endsection

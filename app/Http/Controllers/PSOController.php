@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Carbon;
 
 use PDF;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Illuminate\Support\Facades\Response;
 
 class PSOController extends Controller
 {
@@ -47,6 +49,17 @@ class PSOController extends Controller
 
     private $data = [];
     private $target = [];
+
+    public function downloadPdfFile(): BinaryFileResponse
+    {
+        // return response()->download(public_path('storage/file/contoh.xlsx'));
+        $filePath = public_path('storage/file/contoh.xlsx');
+        $headers = [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ];
+
+        return Response::download($filePath, 'contoh.xlsx', $headers);
+    }
 
     /**
      * Display a listing of the resource.

@@ -37,7 +37,13 @@
                         <h5 class="card-title">Nilai gBest <span>| {{ $data['iterasi'] }} iterasi</span> </h5>
                         <div class="row mx-auto mt-1">
                             <div class="col-12">
-                                <table class="table table-hover datatable" id="table-fitness">
+                                <table class="table table-hover" id="table-fitness">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Keterangan</th>
+                                            <th scope="col">Nilai</th>
+                                        </tr>
+                                    </thead>
                                     <tbody>
                                         @foreach (session()->get('g_best') as $value)
                                             <tr>
@@ -50,8 +56,12 @@
                             </div>
                         </div>
                     </div>
+                    {{-- <div class="card-footer">
+                        <button type="button" class="btn btn-primary" id="btn-excel">Ekspor tabel ke excel</button>
+                    </div> --}}
                 </div>
             </div>
+
             <div class="col-xl-5 col-lg-5">
                 <div class="card shadow mb-4">
                     <!-- Card Body -->
@@ -85,6 +95,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="col-12">
                 <br>
                 <br>
@@ -104,4 +115,36 @@
 @endsection
 
 @section('page-script')
+    <script>
+        $(document).ready(function() {
+            var table = $('#table-fitness').DataTable({
+                dom: 'Bfrtip',
+                "searching": false,
+                "ordering": false,
+                "language": {
+                    "sEmptyTable": "Tidak ada data yang tersedia",
+                    "sInfo": "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+                    "sInfoEmpty": "Menampilkan 0 sampai 0 dari 0 data",
+                    "lengthMenu": "Menampilkan _MENU_ data",
+                    "oPaginate": {
+                        "sFirst": "<<",
+                        "sPrevious": "<",
+                        "sNext": ">",
+                        "sLast": ">>"
+                    },
+                },
+                buttons: {
+                    buttons: [{
+                        extend: 'excel',
+                        className: 'btn-primary'
+                    }],
+                    dom: {
+                        button: {
+                            className: 'btn'
+                        }
+                    }
+                },
+            });
+        });
+    </script>
 @endsection
