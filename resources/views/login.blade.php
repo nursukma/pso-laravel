@@ -35,7 +35,7 @@
 
             <!-- Remind Passowrd -->
             <div id="formFooter">
-                SKRIPSI DONE!
+                Pembobotan Adaptif Pada Transformator Daya
             </div>
 
         </div>

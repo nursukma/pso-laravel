@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Imports\ModelImport;
+use App\Imports\ModelImportAsli;
 use App\Imports\TargetImport;
 use App\Models\ModelVariabel;
 use Illuminate\Http\Request;
@@ -16,6 +17,8 @@ use Illuminate\Support\Carbon;
 use PDF;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Illuminate\Support\Facades\Response;
+
+use Symfony\Component\Stopwatch\Stopwatch;
 
 class PSOController extends Controller
 {
@@ -160,6 +163,9 @@ class PSOController extends Controller
         if (!$request->partikel)
             return redirect('/table-data')->with('error', 'Silakan masukkan jumlah partikel!');
 
+        $stopwatch = new Stopwatch();
+        $stopwatch->start('Perhitungan');
+
         $klasifikasi = $request->session()->get('data');
         $target = $request->session()->get('target');
 
@@ -227,8 +233,6 @@ class PSOController extends Controller
                     for ($i = 0; $i < count($total_kali[$x]); $i++) {
                         $total[$x][$i] = abs($total_kali[$x][$i] - $target[$i]);
                         $total_selisih += round(abs($total_kali[$x][$i] - $target[$i]), 5);
-                        // $total[$x][$i] = abs($total_kali[$x][$i] - self::target[$i]);
-                        // $total_selisih += round(abs($total_kali[$x][$i] - self::target[$i]), 2);
                     }
                     $hasil_selisih[$x] = $total_selisih;
                 }
@@ -330,7 +334,7 @@ class PSOController extends Controller
                 }
                 // ============================ //
 
-                // Random Populasi
+                // MENGHITUNG VELOCITY
                 for ($k = 0; $k < count($populasi); $k++) {
                     for ($j = 0; $j < count($populasi[$k]); $j++) {
                         $hasil_velocity[$k][$j] = round(($b_inersia * $velocity) +
@@ -340,7 +344,7 @@ class PSOController extends Controller
                 }
                 // ============================ //
 
-                // Random Populasi
+                // MEMPERBARUI POSISI X
                 for ($k = 0; $k < count($populasi); $k++) {
                     for ($j = 0; $j < count($populasi[$k]); $j++) {
                         $posisi_x[$k][$j] = $populasi[$k][$j] + $hasil_velocity[$k][$j];
@@ -354,6 +358,10 @@ class PSOController extends Controller
             $start++;
         };
 
+
+        $event = $stopwatch->stop('Perhitungan');
+        $exeTime = $event->getDuration() / 1000;
+
         $history = session()->get('history');
         $history['aktivitas'][count($history['aktivitas'])] = "Hitung";
         $history['waktu'][count($history['waktu'])] = Carbon::now()->format('H:i:m');
@@ -361,15 +369,17 @@ class PSOController extends Controller
         $request->session()->put('history', $history);
 
         $request->session()->put('g_best', $arrayR);
-        $request->session()->put('g_best', $arrayR);
+        // $request->session()->put('g_best', $arrayR);
         $request->session()->put('solusi_akhir', $solusi_akhir);
 
-        $request->session()->put('exeTime', $this->execTime());
+        // $request->session()->put('posisi', $posisi_x);
+
+        $request->session()->put('exeTime', $exeTime);
 
 
         return view('hasil-data.index')->with(['data' => $solusi_akhir]);
         // return (["r1" => $r1, "r2" => $r2]);
-        // dd($total_kali);
+        // <!-- dd($populasi); -->
     }
 
 
@@ -381,12 +391,12 @@ class PSOController extends Controller
     public function import(Request $request)
     {
         if (!$request->hasFile('file') && ($request->bdv == 0 || $request->water == 0 || $request->acidity == 0 || $request->ift == 0 || $request->color == 0 || $request->target == 0)) {
-            // return dd("DATA KOSONG");
+
             return back()->with('error', 'Data yang dimasukkan tidak valid!');
         }
 
         if (!$request->hasFile('file') && (!$request->bdv || !$request->water || !$request->acidity || !$request->ift || !$request->color || !$request->target)) {
-            // return dd("DATA KOSONG");
+
             return back()->with('error', 'Silakan isi data terlebih dahulu!');
         }
 
@@ -450,7 +460,7 @@ class PSOController extends Controller
                 $request->session()->put('data', $data);
                 $request->session()->put('target', $target);
 
-                // dd($request->session()->get('target'));
+                // dd($request->session()->get('data'));
                 // return view('table-data.index')->with(['data' => $data]);
                 return back()->with('message', 'Berhasil tambah data!');
             }
@@ -499,7 +509,8 @@ class PSOController extends Controller
         } else {
             if ($request->hasFile('file') && (!$request->bdv || !$request->water || !$request->acidity || !$request->ift || !$request->color || !$request->target)) {
                 // import excel
-                $fix = Excel::toArray(new ModelImport, request()->file('file'));
+                $imdata = new ModelImport;
+                $fix = Excel::toArray($imdata, request()->file('file'));
 
                 for ($i = 0; $i < count($fix); $i++) {
                     for ($j = 0; $j < count($fix[$i]); $j++) {
@@ -524,8 +535,8 @@ class PSOController extends Controller
                 $request->session()->put('target', $this->target);
                 $request->session()->put('nama_berkas', $request->file('file')->getClientOriginalName());
 
-                // dd($request->session()->get('target'));
-                // return view('table-data.index')->with(['data' => $this->data]);
+                // dd(session()->get('data'));
+                // return $fix;
                 return back()->with('message', 'Berhasil tambah data!');
             }
 
@@ -584,16 +595,782 @@ class PSOController extends Controller
         }
     }
 
+    public function import_asli(Request $request)
+    {
+        if (!$request->hasFile('file_asli') && ($request->bdv_asli == 0 || $request->water_asli == 0 || $request->acidity_asli == 0 || $request->ift_asli == 0 || $request->color_asli == 0 || $request->target_asli == 0)) {
+
+            return back()->with('error', 'Data yang dimasukkan tidak valid!');
+        }
+
+        if (!$request->hasFile('file_asli') && (!$request->bdv_asli || !$request->water_asli || !$request->acidity_asli || !$request->ift_asli || !$request->color_asli || !$request->target_asli)) {
+
+            return back()->with('error', 'Silakan isi data terlebih dahulu!');
+        }
+
+
+        if (session()->has('data') && session()->has('target')) {
+            if (!$request->hasFile('file_asli') && $request->bdv_asli && $request->water_asli && $request->acidity_asli && $request->ift_asli && $request->color_asli && $request->target_asli) {
+                $data =  $request->session()->get('data');
+                $target = $request->session()->get('target');
+
+                $jmlData = count($data);
+
+                $bdv_asli = 0;
+                $water_asli = 0;
+                $acidity_asli = 0;
+                $ift_asli = 0;
+                $color_asli = 0;
+
+                if ($request->bdv_asli >= 0 && $request->bdv_asli < 40) {
+                    $bdv_asli = 4;
+                }
+                if ($request->bdv_asli >= 40 && $request->bdv_asli < 45) {
+                    $bdv_asli = 3;
+                }
+                if ($request->bdv_asli >= 45 && $request->bdv_asli < 50) {
+                    $bdv_asli = 2;
+                }
+                if ($request->bdv_asli >= 50) {
+                    $bdv_asli = 1;
+                }
+
+                if ($request->water_asli >= 0 && $request->water_asli < 20) {
+                    $water_asli = 1;
+                }
+                if ($request->water_asli >= 20 && $request->water_asli < 25) {
+                    $water_asli = 2;
+                }
+                if ($request->water_asli >= 25 && $request->water_asli < 30) {
+                    $water_asli = 3;
+                }
+                if ($request->water_asli >= 30) {
+                    $water_asli = 4;
+                }
+
+                if ($request->acidity_asli >= 0 && $request->acidity_asli < 0.1) {
+                    $acidity_asli = 1;
+                }
+                if ($request->acidity_asli >= 0.1 && $request->acidity_asli < 0.15) {
+                    $acidity_asli = 2;
+                }
+                if ($request->acidity_asli >= 0.15 && $request->acidity_asli < 0.2) {
+                    $acidity_asli = 3;
+                }
+                if ($request->acidity_asli >= 0.2) {
+                    $acidity_asli = 4;
+                }
+
+                if ($request->ift_asli >= 0 && $request->ift_asli < 20) {
+                    $ift_asli = 4;
+                }
+                if ($request->ift_asli >= 20 && $request->ift_asli < 25) {
+                    $ift_asli = 3;
+                }
+                if ($request->ift_asli >= 25 && $request->ift_asli < 35) {
+                    $ift_asli = 2;
+                }
+                if ($request->ift_asli >= 35) {
+                    $ift_asli = 1;
+                }
+
+                if ($request->color_asli >= 0 && $request->color_asli < 1.5) {
+                    $color_asli = 1;
+                }
+                if ($request->color_asli >= 1.5 && $request->color_asli < 2) {
+                    $color_asli = 2;
+                }
+                if ($request->color_asli >= 2 && $request->color_asli < 2.5) {
+                    $color_asli = 3;
+                }
+                if ($request->color_asli >= 2.5) {
+                    $color_asli = 4;
+                }
+
+                if ($jmlData > 0) {
+                    $data[$jmlData] = [0 => $bdv_asli, 1 => $water_asli, 2 => $acidity_asli, 3 => $ift_asli, 4 => $color_asli];
+                    $target[$jmlData] = $request->target_asli;
+                } else {
+                    $data[] = [0 => $bdv_asli, 1 => $water_asli, 2 => $acidity_asli, 3 => $ift_asli, 4 => $color_asli];
+                    $target[] = $request->target_asli;
+                }
+
+                $this->data = $data;
+
+                $history = session()->get('history');
+                $history['aktivitas'][count($history['aktivitas'])] = "Input";
+                $history['waktu'][count($history['waktu'])] = Carbon::now()->format('H:i:m');
+
+                $request->session()->put('history', $history);
+
+                $request->session()->put('data', $data);
+                $request->session()->put('target', $target);
+
+                return back()->with('message', 'Berhasil tambah data!');
+            }
+
+            if ($request->hasFile('file_asli') && (!$request->bdv_asli || !$request->water_asli || !$request->acidity_asli || !$request->ift_asli || !$request->color_asli || !$request->target_asli)) {
+                // import excel
+                $fix = Excel::toArray(new ModelImportAsli, request()->file('file_asli'));
+
+                for ($i = 0; $i < count($fix); $i++) {
+                    for ($j = 0; $j < count($fix[$i]); $j++) {
+                        for ($k = 0; $k < count($fix[$i][$j]); $k++) {
+                            if ($k != 5) {
+                                // $this->data[$j][$k] = $fix[$i][$j][$k];
+                                if ($k == 0) {
+                                    if ($fix[$i][$j][$k] >= 0 && $fix[$i][$j][$k] < 40) {
+                                        $this->data[$j][$k] = 4;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 40 && $fix[$i][$j][$k] < 45) {
+                                        $this->data[$j][$k] = 3;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 45 && $fix[$i][$j][$k] < 50) {
+                                        $this->data[$j][$k] = 2;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 50) {
+                                        $this->data[$j][$k] = 1;
+                                    }
+                                }
+                                if ($k == 1) {
+                                    if ($fix[$i][$j][$k] >= 0 && $fix[$i][$j][$k] < 20) {
+                                        $this->data[$j][$k] = 1;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 20 && $fix[$i][$j][$k] < 25) {
+                                        $this->data[$j][$k] = 2;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 25 && $fix[$i][$j][$k] < 30) {
+                                        $this->data[$j][$k] = 3;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 30) {
+                                        $this->data[$j][$k] = 4;
+                                    }
+                                }
+                                if ($k == 2) {
+                                    if ($fix[$i][$j][$k] >= 0 && $fix[$i][$j][$k] < 0.1) {
+                                        $this->data[$j][$k] = 1;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 0.1 && $fix[$i][$j][$k] < 0.15) {
+                                        $this->data[$j][$k] = 2;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 0.15 && $fix[$i][$j][$k] < 0.2) {
+                                        $this->data[$j][$k] = 3;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 0.2) {
+                                        $this->data[$j][$k] = 4;
+                                    }
+                                }
+                                if ($k == 3) {
+                                    if ($fix[$i][$j][$k] >= 0 && $fix[$i][$j][$k] < 20) {
+                                        $this->data[$j][$k] = 4;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 20 && $fix[$i][$j][$k] < 25) {
+                                        $this->data[$j][$k] = 3;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 25 && $fix[$i][$j][$k] < 35) {
+                                        $this->data[$j][$k] = 2;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 35) {
+                                        $this->data[$j][$k] = 1;
+                                    }
+                                }
+                                if ($k == 4) {
+                                    if ($fix[$i][$j][$k] >= 0 && $fix[$i][$j][$k] < 1.5) {
+                                        $this->data[$j][$k] = 1;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 1.5 && $fix[$i][$j][$k] < 2) {
+                                        $this->data[$j][$k] = 2;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 2 && $fix[$i][$j][$k] < 2.5) {
+                                        $this->data[$j][$k] = 3;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 2.5) {
+                                        $this->data[$j][$k] = 4;
+                                    }
+                                }
+                            } else {
+                                $this->target[$j] = $fix[$i][$j][$k];
+                            }
+                        }
+                    }
+                }
+
+                $data = array_merge($request->session()->get('data'), $this->data);
+                $target = array_merge($request->session()->get('target'), $this->target);
+
+                $history = session()->get('history');
+                $history['aktivitas'][count($history['aktivitas'])] = "Upload";
+                $history['waktu'][count($history['waktu'])] = Carbon::now()->format('H:i:m');
+
+                $request->session()->put('history', $history);
+
+                $request->session()->put('data', $data);
+                $request->session()->put('target', $target);
+                $request->session()->put('nama_berkas', $request->file('file_asli')->getClientOriginalName());
+
+                return back()->with('message', 'Berhasil tambah data!');
+            }
+
+            if ($request->hasFile('file_asli') && $request->bdv_asli && $request->water_asli && $request->acidity_asli && $request->ift_asli && $request->color_asli  && $request->target_asli) {
+                // import excel
+                $fix = Excel::toArray(new ModelImportAsli, request()->file('file_asli'));
+
+                for ($i = 0; $i < count($fix); $i++) {
+                    for ($j = 0; $j < count($fix[$i]); $j++) {
+                        for ($k = 0; $k < count($fix[$i][$j]); $k++) {
+                            if ($k != 5) {
+                                // $this->data[$j][$k] = $fix[$i][$j][$k];
+                                if ($k == 0) {
+                                    if ($fix[$i][$j][$k] >= 0 && $fix[$i][$j][$k] < 40) {
+                                        $this->data[$j][$k] = 4;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 40 && $fix[$i][$j][$k] < 45) {
+                                        $this->data[$j][$k] = 3;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 45 && $fix[$i][$j][$k] < 50) {
+                                        $this->data[$j][$k] = 2;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 50) {
+                                        $this->data[$j][$k] = 1;
+                                    }
+                                }
+                                if ($k == 1) {
+                                    if ($fix[$i][$j][$k] >= 0 && $fix[$i][$j][$k] < 20) {
+                                        $this->data[$j][$k] = 1;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 20 && $fix[$i][$j][$k] < 25) {
+                                        $this->data[$j][$k] = 2;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 25 && $fix[$i][$j][$k] < 30) {
+                                        $this->data[$j][$k] = 3;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 30) {
+                                        $this->data[$j][$k] = 4;
+                                    }
+                                }
+                                if ($k == 2) {
+                                    if ($fix[$i][$j][$k] >= 0 && $fix[$i][$j][$k] < 0.1) {
+                                        $this->data[$j][$k] = 1;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 0.1 && $fix[$i][$j][$k] < 0.15) {
+                                        $this->data[$j][$k] = 2;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 0.15 && $fix[$i][$j][$k] < 0.2) {
+                                        $this->data[$j][$k] = 3;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 0.2) {
+                                        $this->data[$j][$k] = 4;
+                                    }
+                                }
+                                if ($k == 3) {
+                                    if ($fix[$i][$j][$k] >= 0 && $fix[$i][$j][$k] < 20) {
+                                        $this->data[$j][$k] = 4;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 20 && $fix[$i][$j][$k] < 25) {
+                                        $this->data[$j][$k] = 3;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 25 && $fix[$i][$j][$k] < 35) {
+                                        $this->data[$j][$k] = 2;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 35) {
+                                        $this->data[$j][$k] = 1;
+                                    }
+                                }
+                                if ($k == 4) {
+                                    if ($fix[$i][$j][$k] >= 0 && $fix[$i][$j][$k] < 1.5) {
+                                        $this->data[$j][$k] = 1;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 1.5 && $fix[$i][$j][$k] < 2) {
+                                        $this->data[$j][$k] = 2;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 2 && $fix[$i][$j][$k] < 2.5) {
+                                        $this->data[$j][$k] = 3;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 2.5) {
+                                        $this->data[$j][$k] = 4;
+                                    }
+                                }
+                            } else {
+                                $this->target[$j] = $fix[$i][$j][$k];
+                            }
+                        }
+                    }
+                }
+
+                $bdv_asli = 0;
+                $water_asli = 0;
+                $acidity_asli = 0;
+                $ift_asli = 0;
+                $color_asli = 0;
+
+                if ($request->bdv_asli >= 0 && $request->bdv_asli < 40) {
+                    $bdv_asli = 4;
+                }
+                if ($request->bdv_asli >= 40 && $request->bdv_asli < 45) {
+                    $bdv_asli = 3;
+                }
+                if ($request->bdv_asli >= 45 && $request->bdv_asli < 50) {
+                    $bdv_asli = 2;
+                }
+                if ($request->bdv_asli >= 50) {
+                    $bdv_asli = 1;
+                }
+
+                if ($request->water_asli >= 0 && $request->water_asli < 20) {
+                    $water_asli = 1;
+                }
+                if ($request->water_asli >= 20 && $request->water_asli < 25) {
+                    $water_asli = 2;
+                }
+                if ($request->water_asli >= 25 && $request->water_asli < 30) {
+                    $water_asli = 3;
+                }
+                if ($request->water_asli >= 30) {
+                    $water_asli = 4;
+                }
+
+                if ($request->acidity_asli >= 0 && $request->acidity_asli < 0.1) {
+                    $acidity_asli = 1;
+                }
+                if ($request->acidity_asli >= 0.1 && $request->acidity_asli < 0.15) {
+                    $acidity_asli = 2;
+                }
+                if ($request->acidity_asli >= 0.15 && $request->acidity_asli < 0.2) {
+                    $acidity_asli = 3;
+                }
+                if ($request->acidity_asli >= 0.2) {
+                    $acidity_asli = 4;
+                }
+
+                if ($request->ift_asli >= 0 && $request->ift_asli < 20) {
+                    $ift_asli = 4;
+                }
+                if ($request->ift_asli >= 20 && $request->ift_asli < 25) {
+                    $ift_asli = 3;
+                }
+                if ($request->ift_asli >= 25 && $request->ift_asli < 35) {
+                    $ift_asli = 2;
+                }
+                if ($request->ift_asli >= 35) {
+                    $ift_asli = 1;
+                }
+
+                if ($request->color_asli >= 0 && $request->color_asli < 1.5) {
+                    $color_asli = 1;
+                }
+                if ($request->color_asli >= 1.5 && $request->color_asli < 2) {
+                    $color_asli = 2;
+                }
+                if ($request->color_asli >= 2 && $request->color_asli < 2.5) {
+                    $color_asli = 3;
+                }
+                if ($request->color_asli >= 2.5) {
+                    $color_asli = 4;
+                }
+
+                $history = session()->get('history');
+                $history['aktivitas'][count($history['aktivitas'])] = "Upload";
+                $history['aktivitas'][count($history['aktivitas'])] = "Input";
+                $history['waktu'][count($history['waktu']) + 1] = Carbon::now()->format('H:i:m');
+                $history['waktu'][count($history['waktu']) + 1] = Carbon::now()->format('H:i:m');
+
+                $request->session()->put('history', $history);
+
+                $data = array_merge($request->session()->get('data'), $this->data);
+                $target = array_merge($request->session()->get('target'), $this->target);
+
+                $data[count($data)] = [0 => $bdv_asli, 1 => $water_asli, 2 => $acidity_asli, 3 => $ift_asli, 4 => $color_asli];
+                $target[count($target)] = $request->target_asli;
+
+                $request->session()->put('data', $data);
+                $request->session()->put('target', $target);
+                $request->session()->put('nama_berkas', $request->file('file_asli')->getClientOriginalName());
+
+                return back()->with('message', 'Berhasil tambah data!');
+            }
+        } else {
+            if ($request->hasFile('file_asli') && (!$request->bdv_asli || !$request->water_asli || !$request->acidity_asli || !$request->ift_asli || !$request->color_asli || !$request->target_asli)) {
+                // import excel
+                $fix = Excel::toArray(new ModelImportAsli, request()->file('file_asli'));
+
+                for ($i = 0; $i < count($fix); $i++) {
+                    for ($j = 0; $j < count($fix[$i]); $j++) {
+                        for ($k = 0; $k < count($fix[$i][$j]); $k++) {
+                            if ($k != 5) {
+                                // $this->data[$j][$k] = $fix[$i][$j][$k];
+                                if ($k == 0) {
+                                    if ($fix[$i][$j][$k] >= 0 && $fix[$i][$j][$k] < 40) {
+                                        $this->data[$j][$k] = 4;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 40 && $fix[$i][$j][$k] < 45) {
+                                        $this->data[$j][$k] = 3;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 45 && $fix[$i][$j][$k] < 50) {
+                                        $this->data[$j][$k] = 2;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 50) {
+                                        $this->data[$j][$k] = 1;
+                                    }
+                                }
+                                if ($k == 1) {
+                                    if ($fix[$i][$j][$k] >= 0 && $fix[$i][$j][$k] < 20) {
+                                        $this->data[$j][$k] = 1;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 20 && $fix[$i][$j][$k] < 25) {
+                                        $this->data[$j][$k] = 2;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 25 && $fix[$i][$j][$k] < 30) {
+                                        $this->data[$j][$k] = 3;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 30) {
+                                        $this->data[$j][$k] = 4;
+                                    }
+                                }
+                                if ($k == 2) {
+                                    if ($fix[$i][$j][$k] >= 0 && $fix[$i][$j][$k] < 0.1) {
+                                        $this->data[$j][$k] = 1;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 0.1 && $fix[$i][$j][$k] < 0.15) {
+                                        $this->data[$j][$k] = 2;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 0.15 && $fix[$i][$j][$k] < 0.2) {
+                                        $this->data[$j][$k] = 3;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 0.2) {
+                                        $this->data[$j][$k] = 4;
+                                    }
+                                }
+                                if ($k == 3) {
+                                    if ($fix[$i][$j][$k] >= 0 && $fix[$i][$j][$k] < 20) {
+                                        $this->data[$j][$k] = 4;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 20 && $fix[$i][$j][$k] < 25) {
+                                        $this->data[$j][$k] = 3;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 25 && $fix[$i][$j][$k] < 35) {
+                                        $this->data[$j][$k] = 2;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 35) {
+                                        $this->data[$j][$k] = 1;
+                                    }
+                                }
+                                if ($k == 4) {
+                                    if ($fix[$i][$j][$k] >= 0 && $fix[$i][$j][$k] < 1.5) {
+                                        $this->data[$j][$k] = 1;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 1.5 && $fix[$i][$j][$k] < 2) {
+                                        $this->data[$j][$k] = 2;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 2 && $fix[$i][$j][$k] < 2.5) {
+                                        $this->data[$j][$k] = 3;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 2.5) {
+                                        $this->data[$j][$k] = 4;
+                                    }
+                                }
+                            } else {
+                                $this->target[$j] = $fix[$i][$j][$k];
+                            }
+                        }
+                    }
+                }
+
+                $history = session()->get('history');
+                $history['aktivitas'][count($history['aktivitas'])] = "Upload";
+                $history['waktu'][count($history['waktu'])] = Carbon::now()->format('H:i:m');
+
+                $request->session()->put('history', $history);
+
+
+                $request->session()->put('data', $this->data);
+                $request->session()->put('target', $this->target);
+                $request->session()->put('nama_berkas', $request->file('file_asli')->getClientOriginalName());
+
+                return back()->with('message', 'Berhasil tambah data!');
+            }
+
+            if ($request->hasFile('file_asli') && $request->bdv_asli && $request->water_asli && $request->acidity_asli && $request->ift_asli && $request->color_asli && $request->target_asli) {
+                $bdv_asli = 0;
+                $water_asli = 0;
+                $acidity_asli = 0;
+                $ift_asli = 0;
+                $color_asli = 0;
+
+                if ($request->bdv_asli >= 0 && $request->bdv_asli < 40) {
+                    $bdv_asli = 4;
+                }
+                if ($request->bdv_asli >= 40 && $request->bdv_asli < 45) {
+                    $bdv_asli = 3;
+                }
+                if ($request->bdv_asli >= 45 && $request->bdv_asli < 50) {
+                    $bdv_asli = 2;
+                }
+                if ($request->bdv_asli >= 50) {
+                    $bdv_asli = 1;
+                }
+
+                if ($request->water_asli >= 0 && $request->water_asli < 20) {
+                    $water_asli = 1;
+                }
+                if ($request->water_asli >= 20 && $request->water_asli < 25) {
+                    $water_asli = 2;
+                }
+                if ($request->water_asli >= 25 && $request->water_asli < 30) {
+                    $water_asli = 3;
+                }
+                if ($request->water_asli >= 30) {
+                    $water_asli = 4;
+                }
+
+                if ($request->acidity_asli >= 0 && $request->acidity_asli < 0.1) {
+                    $acidity_asli = 1;
+                }
+                if ($request->acidity_asli >= 0.1 && $request->acidity_asli < 0.15) {
+                    $acidity_asli = 2;
+                }
+                if ($request->acidity_asli >= 0.15 && $request->acidity_asli < 0.2) {
+                    $acidity_asli = 3;
+                }
+                if ($request->acidity_asli >= 0.2) {
+                    $acidity_asli = 4;
+                }
+
+                if ($request->ift_asli >= 0 && $request->ift_asli < 20) {
+                    $ift_asli = 4;
+                }
+                if ($request->ift_asli >= 20 && $request->ift_asli < 25) {
+                    $ift_asli = 3;
+                }
+                if ($request->ift_asli >= 25 && $request->ift_asli < 35) {
+                    $ift_asli = 2;
+                }
+                if ($request->ift_asli >= 35) {
+                    $ift_asli = 1;
+                }
+
+                if ($request->color_asli >= 0 && $request->color_asli < 1.5) {
+                    $color_asli = 1;
+                }
+                if ($request->color_asli >= 1.5 && $request->color_asli < 2) {
+                    $color_asli = 2;
+                }
+                if ($request->color_asli >= 2 && $request->color_asli < 2.5) {
+                    $color_asli = 3;
+                }
+                if ($request->color_asli >= 2.5) {
+                    $color_asli = 4;
+                }
+
+                // import excel
+                $fix = Excel::toArray(new ModelImportAsli, request()->file('file_asli'));
+
+                for ($i = 0; $i < count($fix); $i++) {
+                    for ($j = 0; $j < count($fix[$i]); $j++) {
+                        for ($k = 0; $k < count($fix[$i][$j]); $k++) {
+                            if ($k != 5) {
+                                // $this->data[$j][$k] = $fix[$i][$j][$k];
+                                if ($k == 0) {
+                                    if ($fix[$i][$j][$k] >= 0 && $fix[$i][$j][$k] < 40) {
+                                        $this->data[$j][$k] = 4;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 40 && $fix[$i][$j][$k] < 45) {
+                                        $this->data[$j][$k] = 3;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 45 && $fix[$i][$j][$k] < 50) {
+                                        $this->data[$j][$k] = 2;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 50) {
+                                        $this->data[$j][$k] = 1;
+                                    }
+                                }
+                                if ($k == 1) {
+                                    if ($fix[$i][$j][$k] >= 0 && $fix[$i][$j][$k] < 20) {
+                                        $this->data[$j][$k] = 1;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 20 && $fix[$i][$j][$k] < 25) {
+                                        $this->data[$j][$k] = 2;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 25 && $fix[$i][$j][$k] < 30) {
+                                        $this->data[$j][$k] = 3;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 30) {
+                                        $this->data[$j][$k] = 4;
+                                    }
+                                }
+                                if ($k == 2) {
+                                    if ($fix[$i][$j][$k] >= 0 && $fix[$i][$j][$k] < 0.1) {
+                                        $this->data[$j][$k] = 1;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 0.1 && $fix[$i][$j][$k] < 0.15) {
+                                        $this->data[$j][$k] = 2;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 0.15 && $fix[$i][$j][$k] < 0.2) {
+                                        $this->data[$j][$k] = 3;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 0.2) {
+                                        $this->data[$j][$k] = 4;
+                                    }
+                                }
+                                if ($k == 3) {
+                                    if ($fix[$i][$j][$k] >= 0 && $fix[$i][$j][$k] < 20) {
+                                        $this->data[$j][$k] = 4;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 20 && $fix[$i][$j][$k] < 25) {
+                                        $this->data[$j][$k] = 3;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 25 && $fix[$i][$j][$k] < 35) {
+                                        $this->data[$j][$k] = 2;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 35) {
+                                        $this->data[$j][$k] = 1;
+                                    }
+                                }
+                                if ($k == 4) {
+                                    if ($fix[$i][$j][$k] >= 0 && $fix[$i][$j][$k] < 1.5) {
+                                        $this->data[$j][$k] = 1;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 1.5 && $fix[$i][$j][$k] < 2) {
+                                        $this->data[$j][$k] = 2;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 2 && $fix[$i][$j][$k] < 2.5) {
+                                        $this->data[$j][$k] = 3;
+                                    }
+                                    if ($fix[$i][$j][$k] >= 2.5) {
+                                        $this->data[$j][$k] = 4;
+                                    }
+                                }
+                            } else {
+                                $this->target[$j] = $fix[$i][$j][$k];
+                            }
+                        }
+                    }
+                }
+
+                $this->data[count($this->data)] = [0 => $bdv_asli, 1 => $water_asli, 2 => $acidity_asli, 3 => $ift_asli, 4 => $color_asli];
+                $this->target[count($this->target)] = $request->target_asli;
+
+                $history = session()->get('history');
+                $history['aktivitas'][count($history['aktivitas'])] = "Upload";
+                $history['aktivitas'][count($history['aktivitas'])] = "Input";
+                $history['waktu'][count($history['waktu']) + 1] = Carbon::now()->format('H:i:m');
+                $history['waktu'][count($history['waktu']) + 1] = Carbon::now()->format('H:i:m');
+
+                $request->session()->put('history', $history);
+
+                $request->session()->put('data', $this->data);
+                $request->session()->put('target', $this->target);
+                $request->session()->put('nama_berkas', $request->file('file_asli')->getClientOriginalName());
+
+                return back()->with('message', 'Berhasil tambah data!');
+            }
+
+            if (!$request->hasFile('file_asli') && $request->bdv_asli && $request->water_asli && $request->acidity_asli && $request->ift_asli && $request->color_asli && $request->target_asli) {
+
+                $bdv_asli = 0;
+                $water_asli = 0;
+                $acidity_asli = 0;
+                $ift_asli = 0;
+                $color_asli = 0;
+
+                if ($request->bdv_asli >= 0 && $request->bdv_asli < 40) {
+                    $bdv_asli = 4;
+                }
+                if ($request->bdv_asli >= 40 && $request->bdv_asli < 45) {
+                    $bdv_asli = 3;
+                }
+                if ($request->bdv_asli >= 45 && $request->bdv_asli < 50) {
+                    $bdv_asli = 2;
+                }
+                if ($request->bdv_asli >= 50) {
+                    $bdv_asli = 1;
+                }
+
+                if ($request->water_asli >= 0 && $request->water_asli < 20) {
+                    $water_asli = 1;
+                }
+                if ($request->water_asli >= 20 && $request->water_asli < 25) {
+                    $water_asli = 2;
+                }
+                if ($request->water_asli >= 25 && $request->water_asli < 30) {
+                    $water_asli = 3;
+                }
+                if ($request->water_asli >= 30) {
+                    $water_asli = 4;
+                }
+
+                if ($request->acidity_asli >= 0 && $request->acidity_asli < 0.1) {
+                    $acidity_asli = 1;
+                }
+                if ($request->acidity_asli >= 0.1 && $request->acidity_asli < 0.15) {
+                    $acidity_asli = 2;
+                }
+                if ($request->acidity_asli >= 0.15 && $request->acidity_asli < 0.2) {
+                    $acidity_asli = 3;
+                }
+                if ($request->acidity_asli >= 0.2) {
+                    $acidity_asli = 4;
+                }
+
+                if ($request->ift_asli >= 0 && $request->ift_asli < 20) {
+                    $ift_asli = 4;
+                }
+                if ($request->ift_asli >= 20 && $request->ift_asli < 25) {
+                    $ift_asli = 3;
+                }
+                if ($request->ift_asli >= 25 && $request->ift_asli < 35) {
+                    $ift_asli = 2;
+                }
+                if ($request->ift_asli >= 35) {
+                    $ift_asli = 1;
+                }
+
+                if ($request->color_asli >= 0 && $request->color_asli < 1.5) {
+                    $color_asli = 1;
+                }
+                if ($request->color_asli >= 1.5 && $request->color_asli < 2) {
+                    $color_asli = 2;
+                }
+                if ($request->color_asli >= 2 && $request->color_asli < 2.5) {
+                    $color_asli = 3;
+                }
+                if ($request->color_asli >= 2.5) {
+                    $color_asli = 4;
+                }
+
+                $this->data[] = [0 => $bdv_asli, 1 => $water_asli, 2 => $acidity_asli, 3 => $ift_asli, 4 => $color_asli];
+                $this->target[] = $request->target_asli;
+
+                $history = session()->get('history');
+                $history['aktivitas'][count($history['aktivitas'])] = "Input";
+                $history['waktu'][count($history['waktu'])] = Carbon::now()->format('H:i:m');
+
+                $request->session()->put('history', $history);
+
+                $request->session()->put('data', $this->data);
+                $request->session()->put('target', $this->target);
+
+                return back()->with('message', 'Berhasil tambah data!');
+            }
+        }
+    }
+
     public function randomPartikel($jml)
     {
         $arr = array(array());
 
         for ($i = 0; $i < $jml; $i++) {
+            $total = 0;
             for ($j = 0; $j < 5; $j++) {
                 $arr[$i][$j] = $this->tampil();
+                $total += $arr[$i][$j];
+            }
+            if ($total > 1) {
+                if ($i == 0) {
+                    $i = 0;
+                }
+                unset($arr[$i]);
+                $i -= 1;
             }
         }
-
         return $arr;
     }
 

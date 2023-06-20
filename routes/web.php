@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Auth;
 |
 */
 
-Auth::routes();
+// Auth::routes();
 
 // Route::get('/login', function () {
 //     return view('login');
@@ -48,9 +48,11 @@ Route::group(['middleware' => ['ceksesi', 'revalidate']], function () {
         return view('table-data.index');
     })->name('data');
 
-    Route::get('/pso', [PSOController::class, 'destroy'])->name('pso.hapus');
+    Route::delete('/pso', [PSOController::class, 'destroy'])->name('pso.hapus');
 
     Route::post('import', [PSOController::class, 'import'])->name('pso.import');
+
+    Route::post('import-asli', [PSOController::class, 'import_asli'])->name('pso.import_asli');
 
     Route::post('/hitung', [PSOController::class, 'hitung'])->name('pso.hitung');
 

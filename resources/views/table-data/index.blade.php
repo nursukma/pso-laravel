@@ -1,6 +1,27 @@
 @extends('layouts.default')
 
 @section('page-style')
+    <style>
+        /* Style the loading spinner overlay */
+        .spinner-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        /* Style the loading spinner */
+        .spinner-border {
+            color: #ffffff;
+            /* Adjust the color as needed */
+        }
+    </style>
 @endsection
 
 @section('content')
@@ -9,14 +30,40 @@
             <h1>Tabel Data</h1>
         </div>
 
+        <div id="loading-spinner" class="spinner-overlay">
+            <div class="spinner-border" style="width: 50px; height: 50px;" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+
         <div class="row">
             <!-- Tables -->
             <div class="col-xl-12 col-lg-10">
                 <div class="card shadow mb-4">
+                    <div class="card-header d-flex align-items-center justify-content-end mx-2">
+                        <button type="button" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"
+                            data-bs-toggle="modal" data-bs-target="#hitungModal" title="Hitung">
+                            Hitung
+                        </button>
+
+                        <div class="mx-1"></div>
+
+                        {{-- <a href="{{ route('pso.hapus') }}"
+                            class="d-none d-sm-inline-block btn btn-sm btn-warning shadow-sm">
+                            <i class="fas fa-plus fa-sm text-white-50"></i>
+                            Bersihkan
+                        </a> --}}
+                        <button type="button" class="d-none d-sm-inline-block btn btn-sm btn-warning shadow-sm"
+                            title="Hapus Semua Data" id="deleteAll" name="hapus" data-bs-target="#deleteAllModal"
+                            data-bs-toggle="modal">
+                            Bersihkan
+                        </button>
+                    </div>
                     <!-- Card Body -->
                     <div class="card-body">
                         <div class="row mx-auto mt-1">
                             <div class="col-12">
+                                {{-- @dd(session()->get('data')) --}}
                                 <table class="table table-hover" id="table-data">
                                     <thead>
                                         <tr>
@@ -40,9 +87,9 @@
                                                     <td>{{ $var[3] }}</td>
                                                     <td>{{ $var[4] }}</td>
                                                     <td>
-                                                        <a href="#" class="btn btn-light rounded-pill" title="Ubah"
+                                                        {{-- <a href="#" class="btn btn-light rounded-pill" title="Ubah"
                                                             id='edit' name='edit'>
-                                                            <i class="ri-edit-2-line"></i></a>
+                                                            <i class="ri-edit-2-line"></i></a> --}}
                                                         <button type="button" class="btn btn-light rounded-pill"
                                                             title="Hapus" id="hapus" name="hapus"
                                                             data-bs-target="#deleteModal" data-bs-toggle="modal">
@@ -55,17 +102,6 @@
                                 </table>
                             </div>
                         </div>
-                    </div>
-                    <div class="card-footer mx-3">
-                        <button type="button" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"
-                            data-bs-toggle="modal" data-bs-target="#hitungModal" title="Hitung">
-                            Hitung
-                        </button>
-                        <a href="{{ route('pso.hapus') }}"
-                            class="d-none d-sm-inline-block btn btn-sm btn-warning shadow-sm">
-                            <i class="fas fa-plus fa-sm text-white-50"></i>
-                            Bersihkan
-                        </a>
                     </div>
                 </div>
             </div>
@@ -101,7 +137,7 @@
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                            <button type="submit" class="btn btn-success">Simpan</button>
+                            <button type="submit" class="btn btn-success">Proses</button>
                         </div>
                     </form>
                 </div>
@@ -214,6 +250,36 @@
             </div>
         </div>
 
+        {{-- Modal clear data --}}
+        <div class="modal fade" id="deleteAllModal" tabindex="-1" data-bs-backdrop="static">
+            <div class="modal-dialog" role="dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Konfirmasi</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form class="row g-3 needs-validation" id="deleteAll-form" action="/" method="post" novalidate>
+                        @csrf
+                        @method('delete')
+                        <div class="modal-body">
+                            <p class="text-center">
+                                Yakin untuk menghapus semua data ?
+                            </p>
+                            <div class="alert alert-danger text-center" role="alert">
+                                <i class="bi bi-exclamation-octagon me-1"></i>
+                                <span class=""> Perhatian! data akan terhapus dan tidak dapat
+                                    dikembalikan.</span>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                            <button type="submit" class="btn btn-danger">Hapus</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
     </main>
 @endsection
 
@@ -241,10 +307,12 @@
         $(document).ready(function() {
             var detailModal = bootstrap.Modal.getOrCreateInstance('#editModal');
             var deleteModal = bootstrap.Modal.getOrCreateInstance('#deleteModal');
+            var deleteAllModal = bootstrap.Modal.getOrCreateInstance('#deleteAllModal');
 
             var table = $('#table-data').DataTable({
                 "searching": false,
                 "ordering": false,
+                "processing": true,
                 "language": {
                     "sEmptyTable": "Tidak ada data yang tersedia",
                     "sInfo": "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
@@ -255,9 +323,9 @@
                         "sPrevious": "<",
                         "sNext": ">",
                         "sLast": ">>"
-                    }
-                },
-
+                    },
+                    'processing': 'Loading...'
+                }
             });
 
             $("#table-data tbody").on('click', '#edit', function() {
@@ -319,6 +387,21 @@
             //     e.preventdefault();
 
             // }
+
+            $('#deleteAll').on('click', function() {
+                deleteAllModal.show();
+
+                var urlDelete = "{{ route('pso.hapus') }}";
+
+                const delForm = $('form#deleteAll-form');
+                delForm.attr('action', urlDelete);
+            })
         });
+    </script>
+    <script>
+        window.onload = function() {
+            $('#loading-spinner').hide();
+            $('body').css('pointer-events', 'auto');
+        }
     </script>
 @endsection

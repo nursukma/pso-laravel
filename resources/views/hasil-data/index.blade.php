@@ -74,9 +74,9 @@
                                 <p>Dengan iterasi sebanyak
                                     <span class="text-warning">{{ $data['iterasi'] }}</span>
                                 </p>
-                                {{-- <p>waktu eksekusi
-                                    <span class="text-success">{{ session()->get('exeTime') }}</span>
-                                </p> --}}
+                                <p>waktu eksekusi
+                                    <span class="text-success">{{ session()->get('exeTime') }}</span> detik
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -85,7 +85,7 @@
                             @csrf
                             <button type="submit" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"
                                 title="Cetak PDF">
-                                Cetak
+                                Cetak PDF
                             </button>
                             <a href="/table-data" class="d-none d-sm-inline-block btn btn-sm btn-warning shadow-sm">
                                 Kembali
@@ -94,23 +94,22 @@
 
                     </div>
                 </div>
-            </div>
 
-            <div class="col-12">
-                <br>
-                <br>
-                <br>
-                <br>
-                <br>
-                <br>
-                <br>
-                <br>
-                <br>
-                <br>
-                <br>
-                <br>
+                <div class="col-12">
+                    <br>
+                    <br>
+                    <br>
+                    <br>
+                    <br>
+                    <br>
+                    <br>
+                    <br>
+                    <br>
+                    <br>
+                    <br>
+                    <br>
+                </div>
             </div>
-        </div>
     </main>
 @endsection
 
@@ -136,7 +135,8 @@
                 buttons: {
                     buttons: [{
                         extend: 'excel',
-                        className: 'btn-primary'
+                        className: 'btn-primary',
+                        text: 'Download Excel'
                     }],
                     dom: {
                         button: {
