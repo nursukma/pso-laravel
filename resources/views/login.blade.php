@@ -8,6 +8,8 @@
     <meta name="csrf-token" content="{{ csrf_token() }}" />
 
     <link rel="stylesheet" href="{{ asset('/build/assets/css/app.css') }}">
+    <link href="{{ asset('storage/logo.png') }}" rel="apple-touch-icon">
+    <link href="{{ asset('storage/logo.png') }}" rel="icon">
     {{-- <link href="{{ asset('build/assets/vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet"> --}}
 
     {{-- Toastr js --}}

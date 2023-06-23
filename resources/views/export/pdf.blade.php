@@ -24,13 +24,50 @@
         rel="stylesheet">
 
     <!-- Vendor CSS Files -->
-    <link href="{{ asset('build/assets/vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
-    <link href="{{ asset('build/assets/vendor/simple-datatables/style.css') }}" rel="stylesheet">
+    {{-- <link href="{{ asset('build/assets/vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('build/assets/vendor/simple-datatables/style.css') }}" rel="stylesheet"> --}}
 
     <!-- Template Main CSS File -->
-    <link href="{{ asset('build/assets/css/style.css') }}" rel="stylesheet">
+    {{-- <link href="{{ asset('build/assets/css/style.css') }}" rel="stylesheet"> --}}
+    {{-- <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+    <link type="text/css" href="css/style.css" rel="stylesheet" /> --}}
+    <style>
+        /* PDF Styles */
+        body {
+            font-family: Arial, sans-serif;
+        }
 
-    @yield('page-style')
+        h3 {
+            color: #337ab7;
+        }
+
+        .text-primary {
+            color: #337ab7;
+        }
+
+        .text-warning {
+            color: #ffc107;
+        }
+
+        .text-success {
+            color: #38e268;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table td {
+            padding: 8px;
+            border: 1px solid #ccc;
+        }
+
+        .table tr.table-primary td {
+            background-color: #f0f8ff;
+            font-weight: bold;
+        }
+    </style>
 </head>
 
 <body>
@@ -61,6 +98,10 @@
                                                 <h3 class="text-primary">{{ $data['GBest'] }}</h3>
                                                 <p>Dengan iterasi sebanyak
                                                     <span class="text-warning">{{ $data['iterasi'] }}</span>
+                                                    <br><br>
+                                                    Waktu proses <span
+                                                        class="text-success">{{ session()->get('exeTime') }}</span>
+                                                    detik
                                                 </p>
                                             </div>
                                             <div class="col-12">
@@ -68,6 +109,14 @@
                                                 <table class="table table-bordered" id="table-hasil">
                                                     <tbody>
                                                         <tr class="table-primary">
+
+                                                            <td>BDV</td>
+                                                            <td>Acid</td>
+                                                            <td>Water</td>
+                                                            <td>IFT</td>
+                                                            <td>Color</td>
+                                                        </tr>
+                                                        <tr>
                                                             @foreach ($data['Solusi'] as $value)
                                                                 <td>{{ $value }}</td>
                                                             @endforeach
@@ -75,20 +124,6 @@
                                                     </tbody>
                                                 </table>
                                             </div>
-                                            {{-- <div class="col-12">
-                                                <h5 class="card-title"><span>Tabel Perhitungan</span></h5>
-                                                <table class="table" id="table-fitness">
-                                                    <tbody>
-                                                        @foreach (session()->get('g_best') as $value)
-                                                            <tr>
-                                                                <td class="table-primary">Iterasi
-                                                                    ke-{{ $loop->iteration }}</td>
-                                                                <td>{{ $value }}</td>
-                                                            </tr>
-                                                        @endforeach
-                                                    </tbody>
-                                                </table>
-                                            </div> --}}
                                         </div>
                                     </div>
                                 </div>
@@ -97,8 +132,6 @@
                     </main>
                 </div>
             </main>
-
-            {{-- @include('partials.footer') --}}
         </div>
     </div>
 

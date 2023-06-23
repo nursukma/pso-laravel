@@ -246,9 +246,11 @@ class PSOController extends Controller
 
                 // MENCARI GBEST DAN PBEST 
                 for ($x = 0; $x < count($hasil_fitness); $x++) {
-                    $max = max($hasil_fitness);
-                    // $index_max = max(array_keys($hasil_fitness));
-                    $index_max = array_search(max($hasil_fitness), $hasil_fitness);
+                    // $max = max($hasil_fitness);
+                    // $index_max = array_search(max($hasil_fitness), $hasil_fitness);
+
+                    $max = max($p_best);
+                    $index_max = array_search($max, $p_best);
 
                     if ($p_best[$x] < $hasil_fitness[$x]) {
                         $p_best[$x] = $hasil_fitness[$x];
@@ -259,7 +261,7 @@ class PSOController extends Controller
                     }
 
                     // Random Populasi
-                    $solusi_akhir = array("Solusi" => $populasi[$index_max], "GBest" => $g_best, 'iterasi' => $iter);
+                    $solusi_akhir = array("Solusi" => $populasi[$index_max], "GBest" => $g_best, 'iterasi' => $iter, "index" => $index_max, "fitness" => $p_best);
                 }
                 // ============================ //
 
@@ -358,10 +360,6 @@ class PSOController extends Controller
             $start++;
         };
 
-
-        $event = $stopwatch->stop('Perhitungan');
-        $exeTime = $event->getDuration() / 1000;
-
         $history = session()->get('history');
         $history['aktivitas'][count($history['aktivitas'])] = "Hitung";
         $history['waktu'][count($history['waktu'])] = Carbon::now()->format('H:i:m');
@@ -373,19 +371,22 @@ class PSOController extends Controller
         $request->session()->put('solusi_akhir', $solusi_akhir);
 
         // $request->session()->put('posisi', $posisi_x);
+        $event = $stopwatch->stop('Perhitungan');
+        $exeTime = $event->getDuration() / 1000;
 
         $request->session()->put('exeTime', $exeTime);
 
 
+
         return view('hasil-data.index')->with(['data' => $solusi_akhir]);
         // return (["r1" => $r1, "r2" => $r2]);
-        // <!-- dd($populasi); -->
+        // dd($populasi);
     }
 
 
     public function tampil()
     {
-        return round(0 + mt_rand() / mt_getrandmax() * (1.0 - 0), 5);
+        return round(0.08 + mt_rand() / mt_getrandmax() * (1.0 - 0.08), 5);
     }
 
     public function import(Request $request)
@@ -1363,7 +1364,7 @@ class PSOController extends Controller
                 $arr[$i][$j] = $this->tampil();
                 $total += $arr[$i][$j];
             }
-            if ($total > 1) {
+            if ($total > 0.654) {
                 if ($i == 0) {
                     $i = 0;
                 }
@@ -1376,8 +1377,32 @@ class PSOController extends Controller
 
     public function coba()
     {
-        $data = $this->randomPartikel(5);
-        dd($data);
+        $values = [];
+
+        for ($i = 1; $i <= 65; $i++) {
+            $variableValues = [];
+            $sum = 0;
+
+            for ($j = 1; $j <= 4; $j++) {
+                $maxValue = min(0.7 - $sum - (4 - $j) * 0.1, 0.6);  // Maximum value for the current variable
+                $randomValue = round(0.1 + mt_rand() / mt_getrandmax() * ($maxValue - 0.1), 5);
+                $variableValues[] = $randomValue;
+                $sum += $randomValue;
+            }
+
+            // Handle the last variable to ensure the sum is less than 0.7
+            $variableValues[] = round(0.7 - $sum, 5);
+
+            $values[] = $variableValues;
+        }
+
+        // Output the generated values
+        foreach ($values as $variableValues) {
+            foreach ($variableValues as $value) {
+                echo $value . "\n";
+            }
+            echo "----------\n";
+        }
     }
 
     public function searchData($id)
@@ -1442,7 +1467,7 @@ class PSOController extends Controller
     {
         $data = session()->get('solusi_akhir');
         $pdf = PDF::loadView('export.pdf', array('data' =>  $data))
-            ->setPaper('a4', 'portrait')->setOptions(['defaultFont' => 'sans-serif']);
+            ->setPaper('a4', 'portrait')->setOptions(['defaultFont' => 'sans-serif', 'isHtml5ParserEnabled' => true]);
         // $pdf = PDF::loadHTML('<h1>TES</h1>'); 
         return $pdf->stream();
         // dd($data);

@@ -3,8 +3,10 @@
 
      <div class="d-flex align-items-center justify-content-between">
          <a href="#" class="logo d-flex align-items-center">
-             {{-- <img src="{{ asset('build/assets/img/logo.png') }}" alt=""> --}}
-             <span class="d-none d-lg-block">e-SIM</span>
+             <img src="{{ asset('storage/logo.png') }}" alt="logo">
+             <span class="d-none d-sm-block pt-2">
+                 <h5>Pembobotan Adaptif</h5>
+             </span>
          </a>
          <i class="bi bi-list toggle-sidebar-btn"></i>
      </div><!-- End Logo -->

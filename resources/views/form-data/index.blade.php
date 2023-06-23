@@ -38,9 +38,6 @@
 
         <div class="pagetitle">
             <h1>Form Input
-                <a class="icon" href="#askModal" data-bs-toggle="modal" id="openModal" data-bs-target="#askModal">
-                    <i class="bi bi-question-circle"></i>
-                </a>
             </h1>
         </div><!-- End Page Title -->
 
@@ -49,24 +46,6 @@
                 <div class="col-xxl-4 col-xl-4 col-md-4 col-sm-4">
 
                     <div class="card">
-                        {{-- <div class="card-body"> --}}
-
-                        <!-- Bordered Tabs -->
-                        {{-- <ul class="nav nav-tabs nav-tabs-bordered" id="borderedTab" role="tablist">
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link active" id="home-tab" data-bs-toggle="tab"
-                                        data-bs-target="#nilai-klasifikasi" type="button" role="tab"
-                                        aria-controls="home" aria-selected="true">Skor Kualitas Minyak</button>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="profile-tab" data-bs-toggle="tab"
-                                        data-bs-target="#nilai-asli" type="button" role="tab" aria-controls="profile"
-                                        aria-selected="false">Nilai Hasil Pengujian</button>
-                                </li>
-                            </ul> --}}
-                        {{-- <div class="tab-content" id="borderedTabContent">
-                                <div class="tab-pane fade show active d-flex flex-column align-items-center pt-2"
-                                    id="nilai-klasifikasi" role="tabpanel" aria-labelledby="home-tab"> --}}
                         <div class="card-body profile-card pt-4 d-flex flex-column align-items-center">
                             <img src="{{ asset('build/assets/img/file.png') }}" class="img-preview"
                                 style="width: 120px; height: 150px; object-fit: cover;" id="img-element">
@@ -79,25 +58,12 @@
                                     accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                                     onchange="previewFile()">
                             </label>
+                            <a class="btn-info" href="#askModal" data-bs-toggle="modal" id="openModal"
+                                data-bs-target="#askModal">
+                                Panduan Unggah Berkas
+                            </a>
                         </div>
-                        {{-- <div class="tab-pane fade d-flex flex-column align-items-center pt-2" id="nilai-asli"
-                                    role="tabpanel" aria-labelledby="profile-tab" style="display: none">
-                                    <img src="{{ asset('build/assets/img/file.png') }}" class="img-preview"
-                                        style="width: 120px; height: 150px; object-fit: cover;" id="img-asli">
-
-                                    <label for="file" id="excel_asli">Nama Berkas Asli</label>
-
-                                    <label class="btn btn-primary mt-2" id="prev_asli">
-                                        Upload Berkas Asli
-                                        <input type="file" name="file_asli" class="upload__inputfile" id="up_file_asli"
-                                            accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                                            onchange="previewFileAsli()">
-                                    </label>
-                                </div> --}}
-                        {{-- </div><!-- End Bordered Tabs --> --}}
-
                     </div>
-                    {{-- </div> --}}
 
                     <div class="card">
                         <div class="card-body">

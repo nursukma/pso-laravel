@@ -123,14 +123,16 @@
                             <div class="col-md-12">
                                 <label for="bdv" class="form-label">Jumlah Iterasi</label>
                                 <div class="input-group has-validation">
-                                    <input type="number" class="form-control" id="iter" name="iter" required>
+                                    <input type="number" class="form-control" id="iter" name="iter" required
+                                        placeholder="Nilai default : 168">
                                     <div class="invalid-feedback">Harap isi bidang ini!</div>
                                 </div>
                             </div>
                             <div class="col-md-12">
                                 <label for="bdv" class="form-label">Jumlah Partikel</label>
                                 <div class="input-group has-validation">
-                                    <input type="number" class="form-control" id="partikel" name="partikel" required>
+                                    <input type="number" class="form-control" id="partikel" name="partikel" required
+                                        placeholder="Nilai default : 65">
                                     <div class="invalid-feedback">Harap isi bidang ini!</div>
                                 </div>
                             </div>

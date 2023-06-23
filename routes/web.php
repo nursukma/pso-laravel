@@ -66,7 +66,10 @@ Route::group(['middleware' => ['ceksesi', 'revalidate']], function () {
 
     Route::get('contoh-excel', [PSOController::class, 'downloadPdfFile'])->name('download-contoh');
 
-    // Route::get('/coba', function () {
-    //     return \Session::get('g_best');
-    // })->name('pso.coba');
+    Route::get(
+        '/coba',
+        function () {
+            return view('export.pdf');
+        }
+    );
 });

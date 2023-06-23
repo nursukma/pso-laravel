@@ -17,7 +17,7 @@
                                 daya juga berperan penting dalam hal keamanan dan kualitas daya yang dikirimkan melalui
                                 transmisi maupun distribusi</p>
 
-                            <h5 class="card-title">Particel Swarm Optimization </span></h5>
+                            <h5 class="card-title">Particle Swarm Optimization </span></h5>
                             <p>Particle Swarm Optimization (PSO) adalah algoritma optimasi yang mengadaptasi kehidupan
                                 populasi burung dan ikan dalam prosesnya bertahan hidup. Algoritma PSO menganggap ruang
                                 pencarian makanan burung adalah ruang untuk menemukan solusi masalah</p>
@@ -51,7 +51,7 @@
                             </ul>
                         </div>
                         <div class="card-body profile-card pt-4 d-flex flex-column align-items-center">
-                            <img src="{{ asset('build/assets/img/home.png') }}" class="img-preview"
+                            <img src="{{ asset('storage/logo.png') }}" class="img-preview"
                                 style="width: 120px; height: 150px; object-fit: cover" />
 
                             <label for="img" id="img">AW Automation</label>
