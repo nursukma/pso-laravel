@@ -8,15 +8,17 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
     {{-- <title>{{ $site->nama_situs }}</title> --}}
-    <title>SKRIPSI</title>
+    <title>@lang('layouts.title')</title>
     <meta content="" name="description">
     <meta content="" name="keywords">
 
     <!-- Favicons -->
     {{-- <link href="{{ asset('build/assets/img/favicon.png') }}" rel="icon"> --}}
-    <link href="{{ asset('storage/logo.png') }}" rel="apple-touch-icon">
-    <link href="{{ asset('storage/logo.png') }}" rel="icon">
+    {{-- <link href="{{ asset('storage/logo.png') }}" rel="apple-touch-icon">
+    <link href="{{ asset('storage/logo.png') }}" rel="icon"> --}}
     {{-- <link href="{{ asset('build/assets/img/apple-touch-icon.png') }}" rel="apple-touch-icon"> --}}
+    <link href="{{ asset('storage/polinema.png') }}" rel="apple-touch-icon">
+    <link href="{{ asset('storage/polinema.png') }}" rel="icon">
 
     <!-- Google Fonts -->
     <link href="https://fonts.gstatic.com" rel="preconnect">

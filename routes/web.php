@@ -32,7 +32,8 @@ Route::post('/logout', [LoginController::class, 'logout']);
 //     return view('index');
 // })->name('login.submit')->middleware(AuthenticateFile::class);
 
-Route::group(['middleware' => ['ceksesi', 'revalidate']], function () {
+Route::group(['middleware' => ['revalidate', 'ceksesi','lang']], function () {
+    // Route::group(['middleware' => ['ceksesi', 'revalidate']], function () {
 
     Route::resource('activity-log', ActivityLog::class);
 
@@ -45,6 +46,18 @@ Route::group(['middleware' => ['ceksesi', 'revalidate']], function () {
     });
 
     Route::get('/table-data', function () {
+        if (session()->has('data')) {
+            $dataCount = count(session()->get('data')[0]);
+
+            if ($dataCount < 0) {
+                session()->forget('data');
+                // return redirect('/')->with('error', 'maaf template tidak cocok!');
+                // } else {
+                //     return view('table-data.index');
+            }
+        } else {
+            return view('table-data.index');
+        }
         return view('table-data.index');
     })->name('data');
 
@@ -66,10 +79,11 @@ Route::group(['middleware' => ['ceksesi', 'revalidate']], function () {
 
     Route::get('contoh-excel', [PSOController::class, 'downloadPdfFile'])->name('download-contoh');
 
-    Route::get(
-        '/coba',
-        function () {
-            return view('export.pdf');
-        }
-    );
+    Route::get('/variabel', [PSOController::class, 'indexVariabel'])->name('variabel.index');
+
+    Route::get('/getVariabel', [PSOController::class, 'getVariabel'])->name('variabel.getData');
+
+    Route::post('add-variabel', [PSOController::class, 'addVariabel'])->name('variabel.add');
+
+    Route::post('lang', [PSOController::class, 'lang'])->name('c_lang');
 });

@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Lang;
 
 class LoginController extends Controller
 {
@@ -39,7 +40,7 @@ class LoginController extends Controller
             session(['login' => $username . $rand . $password]);
             session(["history" => $arr]);
 
-            return redirect()->intended('/')->with('message', 'Berhasil masuk sistem');
+            return redirect()->intended('/')->with('message', Lang::get('notif.login'));
         }
 
         // if (Auth::login($login)) {
@@ -54,10 +55,11 @@ class LoginController extends Controller
 
     public function logout(Request $request)
     {
+        $notif = Lang::get('notif.logout');
         Auth::logout();
         // $request->session()->flush();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect('/login')->with('message', 'Berhasil keluar sistem');
+        return redirect('/login')->with('message', $notif);
     }
 }

@@ -19,17 +19,23 @@
              </a>
          </li><!-- End Dashboard Nav --> --}}
 
-         <li class="nav-heading">Form</li>
+         <li class="nav-heading">Menu</li>
 
          <li class="nav-item">
              <a class="nav-link {{ request()->is('form-data') ? 'active' : 'collapsed' }}" href="/form-data">
-                 <i class="bi bi-card-heading"></i><span>Form Input</span>
+                 <i class="bi bi-card-heading"></i><span>@lang('layouts.sidebar_form')</span>
              </a>
          </li><!-- End Form Nav -->
 
          <li class="nav-item">
              <a class="nav-link {{ request()->is('table-data') ? 'active' : 'collapsed' }}" href="/table-data">
-                 <i class="bi bi-table"></i><span>Table Data</span>
+                 <i class="bi bi-table"></i><span>@lang('layouts.sidebar_table')</span>
+             </a>
+         </li><!-- End Form Nav -->
+
+         <li class="nav-item">
+             <a class="nav-link {{ request()->is('variabel') ? 'active' : 'collapsed' }}" href="/variabel">
+                 <i class="bi bi-collection"></i><span>@lang('layouts.sidebar_var')</span>
              </a>
          </li><!-- End Form Nav -->
 
@@ -37,7 +43,7 @@
 
          <li class="nav-item">
              <a class="nav-link {{ request()->is('activity-log') ? 'active' : 'collapsed' }}" href="/activity-log">
-                 <i class="bi bi-info-circle"></i><span>Activity Log</span>
+                 <i class="bi bi-info-circle"></i><span>@lang('layouts.sidebar_log')</span>
              </a>
          </li><!-- End Form Nav -->
 

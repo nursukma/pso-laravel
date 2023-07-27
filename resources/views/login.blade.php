@@ -8,8 +8,11 @@
     <meta name="csrf-token" content="{{ csrf_token() }}" />
 
     <link rel="stylesheet" href="{{ asset('/build/assets/css/app.css') }}">
-    <link href="{{ asset('storage/logo.png') }}" rel="apple-touch-icon">
-    <link href="{{ asset('storage/logo.png') }}" rel="icon">
+    {{-- <link href="{{ asset('storage/logo.png') }}" rel="apple-touch-icon">
+    <link href="{{ asset('storage/logo.png') }}" rel="icon"> --}}
+
+    <link href="{{ asset('storage/polinema.png') }}" rel="apple-touch-icon">
+    <link href="{{ asset('storage/polinema.png') }}" rel="icon">
     {{-- <link href="{{ asset('build/assets/vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet"> --}}
 
     {{-- Toastr js --}}
@@ -37,7 +40,7 @@
 
             <!-- Remind Passowrd -->
             <div id="formFooter">
-                Pembobotan Adaptif Pada Transformator Daya
+                Adaptive Weighting On Power Transformers
             </div>
 
         </div>

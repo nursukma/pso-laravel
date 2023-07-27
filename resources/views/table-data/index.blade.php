@@ -27,7 +27,7 @@
 @section('content')
     <main class="main" id="main">
         <div class="pagetitle">
-            <h1>Tabel Data</h1>
+            <h1>@lang('layouts.sidebar_table')</h1>
         </div>
 
         <div id="loading-spinner" class="spinner-overlay">
@@ -42,8 +42,8 @@
                 <div class="card shadow mb-4">
                     <div class="card-header d-flex align-items-center justify-content-end mx-2">
                         <button type="button" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"
-                            data-bs-toggle="modal" data-bs-target="#hitungModal" title="Hitung">
-                            Hitung
+                            data-bs-toggle="modal" data-bs-target="#hitungModal">
+                            @lang('page_table.btn_hitung')
                         </button>
 
                         <div class="mx-1"></div>
@@ -54,9 +54,8 @@
                             Bersihkan
                         </a> --}}
                         <button type="button" class="d-none d-sm-inline-block btn btn-sm btn-warning shadow-sm"
-                            title="Hapus Semua Data" id="deleteAll" name="hapus" data-bs-target="#deleteAllModal"
-                            data-bs-toggle="modal">
-                            Bersihkan
+                            id="deleteAll" name="hapus" data-bs-target="#deleteAllModal" data-bs-toggle="modal">
+                            @lang('page_table.btn_clear')
                         </button>
                     </div>
                     <!-- Card Body -->
@@ -67,36 +66,44 @@
                                 <table class="table table-hover" id="table-data">
                                     <thead>
                                         <tr>
-                                            <th scope="col">No</th>
+                                            <th scope="col">@lang('page_table.dt_no')</th>
                                             <th scope="col">BDV</th>
                                             <th scope="col">Water</th>
                                             <th scope="col">Acidity</th>
                                             <th scope="col">IFT</th>
                                             <th scope="col">Color</th>
-                                            <th scope="col">Aksi</th>
+                                            <th scope="col">@lang('page_table.dt_aksi')</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         @if (session()->has('data'))
-                                            @foreach (session()->get('data') as $key => $var)
-                                                <tr>
-                                                    <th scope="row">{{ $loop->iteration }}</th>
-                                                    <td>{{ $var[0] }}</td>
-                                                    <td>{{ $var[1] }}</td>
-                                                    <td>{{ $var[2] }}</td>
-                                                    <td>{{ $var[3] }}</td>
-                                                    <td>{{ $var[4] }}</td>
-                                                    <td>
-                                                        {{-- <a href="#" class="btn btn-light rounded-pill" title="Ubah"
+                                            @if (count(session()->get('data')[0]) < 5)
+                                                {{ session()->forget('data') }}
+                                                {{ $redirectUrl = '/table-data' }}
+                                                <script>
+                                                    window.location.href = "{{ $redirectUrl }}";
+                                                </script>
+                                            @else
+                                                @foreach (session()->get('data') as $key => $var)
+                                                    <tr>
+                                                        <th scope="row">{{ $loop->iteration }}</th>
+                                                        <td>{{ $var[0] }}</td>
+                                                        <td>{{ $var[1] }}</td>
+                                                        <td>{{ $var[2] }}</td>
+                                                        <td>{{ $var[3] }}</td>
+                                                        <td>{{ $var[4] }}</td>
+                                                        <td>
+                                                            {{-- <a href="#" class="btn btn-light rounded-pill" title="Ubah"
                                                             id='edit' name='edit'>
                                                             <i class="ri-edit-2-line"></i></a> --}}
-                                                        <button type="button" class="btn btn-light rounded-pill"
-                                                            title="Hapus" id="hapus" name="hapus"
-                                                            data-bs-target="#deleteModal" data-bs-toggle="modal">
-                                                            <i class="ri-delete-bin-line"></i></button>
-                                                    </td>
-                                                </tr>
-                                            @endforeach
+                                                            <button type="button" class="btn btn-light rounded-pill"
+                                                                title="@lang('page_table.dt_aksi_del')" id="hapus" name="hapus"
+                                                                data-bs-target="#deleteModal" data-bs-toggle="modal">
+                                                                <i class="ri-delete-bin-line"></i></button>
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            @endif
                                         @endif
                                     </tbody>
                                 </table>
@@ -113,7 +120,7 @@
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="staticBackdropLabel">Form Hitung</h5>
+                        <h5 class="modal-title" id="staticBackdropLabel">@lang('modal_hitung.title')</h5>
                         <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <form class="row g-2 needs-validation" action="{{ route('pso.hitung') }}" method="post"
@@ -121,25 +128,26 @@
                         @csrf
                         <div class="modal-body">
                             <div class="col-md-12">
-                                <label for="bdv" class="form-label">Jumlah Iterasi</label>
+                                <label for="bdv" class="form-label">@lang('modal_hitung.label_iter')</label>
                                 <div class="input-group has-validation">
                                     <input type="number" class="form-control" id="iter" name="iter" required
-                                        placeholder="Nilai default : 168">
-                                    <div class="invalid-feedback">Harap isi bidang ini!</div>
+                                        placeholder="@lang('modal_hitung.place_iter')">
+                                    <div class="invalid-feedback">@lang('modal_hitung.label_invalid')</div>
                                 </div>
                             </div>
                             <div class="col-md-12">
-                                <label for="bdv" class="form-label">Jumlah Partikel</label>
+                                <label for="bdv" class="form-label">@lang('modal_hitung.label_par')</label>
                                 <div class="input-group has-validation">
                                     <input type="number" class="form-control" id="partikel" name="partikel" required
-                                        placeholder="Nilai default : 65">
-                                    <div class="invalid-feedback">Harap isi bidang ini!</div>
+                                        placeholder=@lang('modal_hitung.place_par')">
+                                    <div class="invalid-feedback">@lang('modal_hitung.label_invalid')</div>
                                 </div>
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                            <button type="submit" class="btn btn-success">Proses</button>
+                            <button type="button" class="btn btn-secondary"
+                                data-bs-dismiss="modal">@lang('modal_hitung.btn_close')</button>
+                            <button type="submit" class="btn btn-success">@lang('modal_hitung.btn_proses')</button>
                         </div>
                     </form>
                 </div>
@@ -226,7 +234,7 @@
             <div class="modal-dialog" role="dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Konfirmasi</h5>
+                        <h5 class="modal-title">@lang('modal_hitung.confirm')</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <form class="row g-3 needs-validation" id="delete-form" action="/" method="post" novalidate>
@@ -234,18 +242,18 @@
                         @method('delete')
                         <div class="modal-body">
                             <p class="text-center">
-                                Yakin untuk menghapus data no <strong class="badge border-danger border-1 text-danger"
+                                @lang('page_table.label_warn') <strong class="badge border-danger border-1 text-danger"
                                     id="title"> </strong>?
                             </p>
                             <div class="alert alert-danger text-center" role="alert">
                                 <i class="bi bi-exclamation-octagon me-1"></i>
-                                <span class=""> Perhatian! data akan terhapus dan tidak dapat
-                                    dikembalikan.</span>
+                                <span class="">@lang('page_table.label_warns')</span>
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                            <button type="submit" class="btn btn-danger">Hapus</button>
+                            <button type="button" class="btn btn-secondary"
+                                data-bs-dismiss="modal">@lang('modal_hitung.btn_re')</button>
+                            <button type="submit" class="btn btn-danger">@lang('modal_hitung.btn_acc')</button>
                         </div>
                     </form>
                 </div>
@@ -257,7 +265,7 @@
             <div class="modal-dialog" role="dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Konfirmasi</h5>
+                        <h5 class="modal-title">@lang('modal_hitung.confirm')</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <form class="row g-3 needs-validation" id="deleteAll-form" action="/" method="post" novalidate>
@@ -265,17 +273,17 @@
                         @method('delete')
                         <div class="modal-body">
                             <p class="text-center">
-                                Yakin untuk menghapus semua data ?
+                                @lang('modal_hitung.label_warn')
                             </p>
                             <div class="alert alert-danger text-center" role="alert">
                                 <i class="bi bi-exclamation-octagon me-1"></i>
-                                <span class=""> Perhatian! data akan terhapus dan tidak dapat
-                                    dikembalikan.</span>
+                                <span class=""> @lang('modal_hitung.label_warns')</span>
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                            <button type="submit" class="btn btn-danger">Hapus</button>
+                            <button type="button" class="btn btn-secondary"
+                                data-bs-dismiss="modal">@lang('modal_hitung.btn_re')</button>
+                            <button type="submit" class="btn btn-danger">@lang('modal_hitung.btn_acc')</button>
                         </div>
                     </form>
                 </div>
@@ -311,24 +319,43 @@
             var deleteModal = bootstrap.Modal.getOrCreateInstance('#deleteModal');
             var deleteAllModal = bootstrap.Modal.getOrCreateInstance('#deleteAllModal');
 
-            var table = $('#table-data').DataTable({
-                "searching": false,
-                "ordering": false,
-                "processing": true,
-                "language": {
-                    "sEmptyTable": "Tidak ada data yang tersedia",
-                    "sInfo": "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
-                    "sInfoEmpty": "Menampilkan 0 sampai 0 dari 0 data",
-                    "lengthMenu": "Menampilkan _MENU_ data",
-                    "oPaginate": {
-                        "sFirst": "<<",
-                        "sPrevious": "<",
-                        "sNext": ">",
-                        "sLast": ">>"
-                    },
-                    'processing': 'Loading...'
-                }
-            });
+            var lang = "{{ app()->getLocale() }}";
+
+            if (lang === 'id') {
+                var table = $('#table-data').DataTable({
+                    "searching": false,
+                    "ordering": false,
+                    "processing": true,
+                    "language": {
+                        "sEmptyTable": "Tidak ada data yang tersedia",
+                        "sInfo": "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+                        "sInfoEmpty": "Menampilkan 0 sampai 0 dari 0 data",
+                        "lengthMenu": "Menampilkan _MENU_ data",
+                        "oPaginate": {
+                            "sFirst": "<<",
+                            "sPrevious": "<",
+                            "sNext": ">",
+                            "sLast": ">>"
+                        },
+                        'processing': 'Loading...'
+                    }
+                });
+            } else {
+                var table = $('#table-data').DataTable({
+                    "searching": false,
+                    "ordering": false,
+                    "processing": true,
+                    "language": {
+                        "oPaginate": {
+                            "sFirst": "<<",
+                            "sPrevious": "<",
+                            "sNext": ">",
+                            "sLast": ">>"
+                        },
+                        'processing': 'Loading...'
+                    }
+                });
+            }
 
             $("#table-data tbody").on('click', '#edit', function() {
                 var id = $(this).closest('tr').index();

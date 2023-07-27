@@ -11,25 +11,19 @@
                 <div class="col-xxl-8 col-xl-8 col-md-8 col-sm-8">
                     <div class="card">
                         <div class="card-body">
-                            <h5 class="card-title"><span>Transformator Daya </span></h5>
-                            <p>Transformator daya merupakan salah satu peralatan terpenting di gardu induk dan pembangkit
-                                listrik untuk melakukan transmisi maupun distribusi. Selain dua hal tersebut, transformator
-                                daya juga berperan penting dalam hal keamanan dan kualitas daya yang dikirimkan melalui
-                                transmisi maupun distribusi</p>
+                            <h5 class="card-title"><span>@lang('dashboard.trafo_title')</span></h5>
+                            <p>@lang('dashboard.trafo_info')</p>
 
                             <h5 class="card-title">Particle Swarm Optimization </span></h5>
-                            <p>Particle Swarm Optimization (PSO) adalah algoritma optimasi yang mengadaptasi kehidupan
-                                populasi burung dan ikan dalam prosesnya bertahan hidup. Algoritma PSO menganggap ruang
-                                pencarian makanan burung adalah ruang untuk menemukan solusi masalah</p>
+                            <p>@lang('dashboard.pso_info')</p>
 
-                            <h5 class="card-title">Informasi </span></h5>
+                            <h5 class="card-title">@lang('dashboard.info_title')</span></h5>
                             <ol>
                                 <ul>
-                                    <li>Menu Dashboard, yang menampilkan halaman awal sistem</li>
-                                    <li>Menu Form Input, yang digunakan untuk menambahkan data yang akan dihitung</li>
-                                    <li>Menu Table Data, yang menampilkan data dalam bentuk tabel hasil dari menu Form
-                                        Input</li>
-                                    <li>Menu Activity Log, yang menampilkan riwayat aktivitas penggunaan sistem</li>
+                                    <li>@lang('dashboard.info_s')</li>
+                                    <li>@lang('dashboard.info_d')</li>
+                                    <li>@lang('dashboard.info_t')</li>
+                                    <li>@lang('dashboard.info_e')</li>
                                     {{-- <li>@dd(session()->get('history'))</li> --}}
                                 </ul>
                             </ol>
@@ -51,8 +45,11 @@
                             </ul>
                         </div>
                         <div class="card-body profile-card pt-4 d-flex flex-column align-items-center">
-                            <img src="{{ asset('storage/logo.png') }}" class="img-preview"
-                                style="width: 120px; height: 150px; object-fit: cover" />
+                            {{-- <img src="{{ asset('storage/logo.png') }}" class="img-preview"
+                                style="width: 120px; height: 150px; object-fit: cover" /> --}}
+
+                            <img src="{{ asset('storage/polinema.png') }}" class="img-preview"
+                                style="width: 200px; height: 250px; object-fit: contain" />
 
                             <label for="img" id="img">AW Automation</label>
                         </div>

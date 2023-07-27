@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\App;
 use App\Imports\ModelImport;
 use App\Imports\ModelImportAsli;
 use App\Imports\TargetImport;
@@ -11,6 +12,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Lang;
 
 use Illuminate\Support\Carbon;
 
@@ -19,6 +22,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Illuminate\Support\Facades\Response;
 
 use Symfony\Component\Stopwatch\Stopwatch;
+use Illuminate\Support\Str;
 
 class PSOController extends Controller
 {
@@ -50,8 +54,8 @@ class PSOController extends Controller
 
     const target = [2.54, 3.25, 1.19, 1.19, 1.36, 2.80, 1.45, 1.71, 1.19, 1.19];
 
-    private $data = [];
-    private $target = [];
+    private $data = [[1, 1, 4, 3, 4], [3, 1, 4, 4, 4], [1, 1, 1, 2, 1]];
+    private $target = [2.54, 3.25, 1.19];
 
     public function downloadPdfFile(): BinaryFileResponse
     {
@@ -62,6 +66,19 @@ class PSOController extends Controller
         ];
 
         return Response::download($filePath, 'contoh.xlsx', $headers);
+    }
+
+    public function lang()
+    {
+        if (app()->getLocale() == 'id') {
+            App::setLocale('en');
+            // dd(app()->getLocale());
+            session()->put('locale', 'en');
+        } else {
+            App::setLocale('id');
+            session()->put('locale', 'id');
+        }
+        return redirect()->back();
     }
 
     /**
@@ -137,17 +154,21 @@ class PSOController extends Controller
      */
     public function destroy(Request $request)
     {
+        $notif = Lang::get('notif.clear_all');
+
         $request->session()->forget('data');
         $request->session()->forget('target');
         $request->session()->forget('nama_berkas');
 
         $history = session()->get('history');
+
         $history['aktivitas'][count($history['aktivitas'])] = "Hapus";
+
         $history['waktu'][count($history['waktu'])] = Carbon::now()->format('H:i:m');
 
         $request->session()->put('history', $history);
 
-        return back()->with('message', 'Data berhasil dibersihkan');
+        return back()->with('message', $notif);
     }
 
     public function hitung(Request $request)
@@ -155,13 +176,13 @@ class PSOController extends Controller
         set_time_limit(0);
 
         if (!session()->has('data'))
-            return back()->with('error', 'Belum terdapat data!');
+            return back()->with('error', Lang::get('notif.err1'));
 
         if (!$request->iter)
-            return redirect('/table-data')->with('error', 'Silakan masukkan jumlah iterasi!');
+            return redirect('/table-data')->with('error', Lang::get('notif.err2'));
 
         if (!$request->partikel)
-            return redirect('/table-data')->with('error', 'Silakan masukkan jumlah partikel!');
+            return redirect('/table-data')->with('error', Lang::get('notif.err3'));
 
         $stopwatch = new Stopwatch();
         $stopwatch->start('Perhitungan');
@@ -261,7 +282,7 @@ class PSOController extends Controller
                     }
 
                     // Random Populasi
-                    $solusi_akhir = array("Solusi" => $populasi[$index_max], "GBest" => $g_best, 'iterasi' => $iter, "index" => $index_max, "fitness" => $p_best);
+                    $solusi_akhir = array("Solusi" => $populasi[$index_max], "GBest" => $g_best, 'iterasi' => $iter, "index" => $index_max);
                 }
                 // ============================ //
 
@@ -313,7 +334,7 @@ class PSOController extends Controller
                 // MENGHITUNG NILAI FITNESS
                 for ($x = 0; $x < count($hasil_selisih); $x++) {
                     if ($hasil_selisih[$x] == 0)
-                        return back()->with('warning', 'Data target tidak valid!');
+                        return back()->with('warning', Lang::get('notif.err4'));
                     $hasil_fitness[$x] = round(1 / $hasil_selisih[$x], 5);
                 }
                 // ================================= //
@@ -367,7 +388,6 @@ class PSOController extends Controller
         $request->session()->put('history', $history);
 
         $request->session()->put('g_best', $arrayR);
-        // $request->session()->put('g_best', $arrayR);
         $request->session()->put('solusi_akhir', $solusi_akhir);
 
         // $request->session()->put('posisi', $posisi_x);
@@ -393,12 +413,12 @@ class PSOController extends Controller
     {
         if (!$request->hasFile('file') && ($request->bdv == 0 || $request->water == 0 || $request->acidity == 0 || $request->ift == 0 || $request->color == 0 || $request->target == 0)) {
 
-            return back()->with('error', 'Data yang dimasukkan tidak valid!');
+            return back()->with('error', Lang::get('notif.err5'));
         }
 
         if (!$request->hasFile('file') && (!$request->bdv || !$request->water || !$request->acidity || !$request->ift || !$request->color || !$request->target)) {
 
-            return back()->with('error', 'Silakan isi data terlebih dahulu!');
+            return back()->with('error', Lang::get('notif.err6'));
         }
 
 
@@ -430,7 +450,7 @@ class PSOController extends Controller
 
                 // dd($request->session()->get('target'));
                 // return view('table-data.index')->with(['data' => $data]);
-                return back()->with('message', 'Berhasil tambah data!');
+                return back()->with('message', Lang::get('notif.succ_add'));
             }
 
             if ($request->hasFile('file') && (!$request->bdv || !$request->water || !$request->acidity || !$request->ift || !$request->color || !$request->target)) {
@@ -463,7 +483,7 @@ class PSOController extends Controller
 
                 // dd($request->session()->get('data'));
                 // return view('table-data.index')->with(['data' => $data]);
-                return back()->with('message', 'Berhasil tambah data!');
+                return back()->with('message', Lang::get('notif.succ_add'));
             }
 
             if ($request->hasFile('file') && $request->bdv && $request->water && $request->acidity && $request->ift && $request->color  && $request->target) {
@@ -505,7 +525,7 @@ class PSOController extends Controller
 
                 // dd($request->session()->get('target'));
                 // return view('table-data.index')->with(['data' => $data]);
-                return back()->with('message', 'Berhasil tambah data!');
+                return back()->with('message', Lang::get('notif.succ_add'));
             }
         } else {
             if ($request->hasFile('file') && (!$request->bdv || !$request->water || !$request->acidity || !$request->ift || !$request->color || !$request->target)) {
@@ -531,14 +551,14 @@ class PSOController extends Controller
 
                 $request->session()->put('history', $history);
 
-
+                $request->session()->put('nama_berkas', $request->file('file')->getClientOriginalName());
                 $request->session()->put('data', $this->data);
                 $request->session()->put('target', $this->target);
-                $request->session()->put('nama_berkas', $request->file('file')->getClientOriginalName());
+
 
                 // dd(session()->get('data'));
                 // return $fix;
-                return back()->with('message', 'Berhasil tambah data!');
+                return back()->with('message', Lang::get('notif.succ_add'));
             }
 
             if ($request->hasFile('file') && $request->bdv && $request->water && $request->acidity && $request->ift && $request->color && $request->target) {
@@ -573,7 +593,7 @@ class PSOController extends Controller
 
                 // dd($request->session()->get('target'));
                 // return view('table-data.index')->with(['data' => $this->data]);
-                return back()->with('message', 'Berhasil tambah data!');
+                return back()->with('message', Lang::get('notif.succ_add'));
             }
 
             if (!$request->hasFile('file') && $request->bdv && $request->water && $request->acidity && $request->ift && $request->color && $request->target) {
@@ -591,21 +611,24 @@ class PSOController extends Controller
 
                 // dd($request->session()->get('target'));
                 // return view('table-data.index')->with(['data' => $this->data]);
-                return back()->with('message', 'Berhasil tambah data!');
+                return back()->with('message', Lang::get('notif.succ_add'));
             }
         }
+        // $request->session()->put('data', $this->data);
+        // $request->session()->put('target', $this->target);
+        // return back()->with('message', "OKE");
     }
 
     public function import_asli(Request $request)
     {
         if (!$request->hasFile('file_asli') && ($request->bdv_asli == 0 || $request->water_asli == 0 || $request->acidity_asli == 0 || $request->ift_asli == 0 || $request->color_asli == 0 || $request->target_asli == 0)) {
 
-            return back()->with('error', 'Data yang dimasukkan tidak valid!');
+            return back()->with('error', Lang::get('notif.err5'));
         }
 
         if (!$request->hasFile('file_asli') && (!$request->bdv_asli || !$request->water_asli || !$request->acidity_asli || !$request->ift_asli || !$request->color_asli || !$request->target_asli)) {
 
-            return back()->with('error', 'Silakan isi data terlebih dahulu!');
+            return back()->with('error', Lang::get('notif.err6'));
         }
 
 
@@ -706,7 +729,7 @@ class PSOController extends Controller
                 $request->session()->put('data', $data);
                 $request->session()->put('target', $target);
 
-                return back()->with('message', 'Berhasil tambah data!');
+                return back()->with('message', Lang::get('notif.succ_add'));
             }
 
             if ($request->hasFile('file_asli') && (!$request->bdv_asli || !$request->water_asli || !$request->acidity_asli || !$request->ift_asli || !$request->color_asli || !$request->target_asli)) {
@@ -808,7 +831,7 @@ class PSOController extends Controller
                 $request->session()->put('target', $target);
                 $request->session()->put('nama_berkas', $request->file('file_asli')->getClientOriginalName());
 
-                return back()->with('message', 'Berhasil tambah data!');
+                return back()->with('message', Lang::get('notif.succ_add'));
             }
 
             if ($request->hasFile('file_asli') && $request->bdv_asli && $request->water_asli && $request->acidity_asli && $request->ift_asli && $request->color_asli  && $request->target_asli) {
@@ -986,7 +1009,7 @@ class PSOController extends Controller
                 $request->session()->put('target', $target);
                 $request->session()->put('nama_berkas', $request->file('file_asli')->getClientOriginalName());
 
-                return back()->with('message', 'Berhasil tambah data!');
+                return back()->with('message', Lang::get('notif.succ_add'));
             }
         } else {
             if ($request->hasFile('file_asli') && (!$request->bdv_asli || !$request->water_asli || !$request->acidity_asli || !$request->ift_asli || !$request->color_asli || !$request->target_asli)) {
@@ -1086,7 +1109,7 @@ class PSOController extends Controller
                 $request->session()->put('target', $this->target);
                 $request->session()->put('nama_berkas', $request->file('file_asli')->getClientOriginalName());
 
-                return back()->with('message', 'Berhasil tambah data!');
+                return back()->with('message', Lang::get('notif.succ_add'));
             }
 
             if ($request->hasFile('file_asli') && $request->bdv_asli && $request->water_asli && $request->acidity_asli && $request->ift_asli && $request->color_asli && $request->target_asli) {
@@ -1261,7 +1284,7 @@ class PSOController extends Controller
                 $request->session()->put('target', $this->target);
                 $request->session()->put('nama_berkas', $request->file('file_asli')->getClientOriginalName());
 
-                return back()->with('message', 'Berhasil tambah data!');
+                return back()->with('message', Lang::get('notif.succ_add'));
             }
 
             if (!$request->hasFile('file_asli') && $request->bdv_asli && $request->water_asli && $request->acidity_asli && $request->ift_asli && $request->color_asli && $request->target_asli) {
@@ -1349,7 +1372,7 @@ class PSOController extends Controller
                 $request->session()->put('data', $this->data);
                 $request->session()->put('target', $this->target);
 
-                return back()->with('message', 'Berhasil tambah data!');
+                return back()->with('message', Lang::get('notif.succ_add'));
             }
         }
     }
@@ -1447,7 +1470,7 @@ class PSOController extends Controller
             session()->put('data', $data);
             session()->put('target', $target);
 
-            return redirect('/table-data')->with('message', 'Berhasil menghapus data!');
+            return redirect('/table-data')->with('message', Lang::get('notif.succ_del'));
         }
         // dd($data);
     }
@@ -1471,5 +1494,87 @@ class PSOController extends Controller
         // $pdf = PDF::loadHTML('<h1>TES</h1>'); 
         return $pdf->stream();
         // dd($data);
+    }
+
+    public function getVariabel()
+    {
+        $data = Storage::disk('public')->get('variabel.txt');
+        // $data = json_decode($contents, true);
+        return $data;
+    }
+
+    public function indexVariabel()
+    {
+        $contents = Storage::disk('public')->get('variabel.txt');
+        $data = json_decode($contents, true);
+        return view('manage-variabel.index', compact('data'));
+        // return view('manage-variabel.index');
+        // dd($data);
+    }
+
+    public function addVariabel(Request $request)
+    {
+        $var = $request->nama_variabel;
+        $firstLetter = Str::substr($var, 0, 1);
+
+        $characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        $randomString = '';
+        $angka = mt_rand(0, 10);
+
+        for ($i = 0; $i < 3; $i++) {
+            $randomString .= $characters[mt_rand(0, strlen($characters) - 1)];
+        }
+
+        $dataString = json_encode(['id' => $firstLetter . $randomString . $angka, 'data' => $var]);
+        $filePath = storage_path('app/public/variabel.txt');
+        // Read existing data from the file, if any
+        $existingData = [];
+        if (File::exists($filePath)) {
+            $existingData = json_decode(File::get($filePath), true);
+        }
+
+        // Append the new data to the existing data
+        $existingData[] = $dataString;
+
+        // Save the data as JSON to the text file
+        File::put($filePath, json_encode($existingData));
+
+        return back()->with('message', Lang::get('notif.succ_add'));
+    }
+
+    public function deleteVariabel($idToDelete)
+    {
+        $filePath = storage_path('app/public/variabel.txt');
+
+        // Read existing data from the file, if any
+        $existingData = [];
+        if (File::exists($filePath)) {
+            $jsonData = File::get($filePath);
+            $existingData = json_decode($jsonData, true);
+        }
+
+        // Find the index of the object with the specified ID in the array
+        $indexToDelete = null;
+        foreach ($existingData as $index => $data) {
+            $decodedData = json_decode($data, true);
+            if ($decodedData['id'] === $idToDelete) {
+                $indexToDelete = $index;
+                break;
+            }
+        }
+
+        // If the object with the specified ID was found, remove it from the array
+        if ($indexToDelete !== null) {
+            unset($existingData[$indexToDelete]);
+            // Reindex the array after removing the element
+            $existingData = array_values($existingData);
+
+            // Save the updated data as JSON to the text file
+            File::put($filePath, json_encode($existingData));
+
+            return redirect()->back()->with('success', 'Data with ID ' . $idToDelete . ' has been deleted.');
+        } else {
+            return redirect()->back()->with('error', 'Data with ID ' . $idToDelete . ' not found.');
+        }
     }
 }

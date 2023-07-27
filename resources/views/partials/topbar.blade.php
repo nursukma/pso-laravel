@@ -3,9 +3,10 @@
 
      <div class="d-flex align-items-center justify-content-between">
          <a href="#" class="logo d-flex align-items-center">
-             <img src="{{ asset('storage/logo.png') }}" alt="logo">
+             {{-- <img src="{{ asset('storage/logo.png') }}" alt="logo"> --}}
+             <img src="{{ asset('storage/polinema.png') }}" alt="logo">
              <span class="d-none d-sm-block pt-2">
-                 <h5>Pembobotan Adaptif</h5>
+                 <h5>@lang('layouts.topbar_title')</h5>
              </span>
          </a>
          <i class="bi bi-list toggle-sidebar-btn"></i>
@@ -25,14 +26,29 @@
 
                  <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
                      <li>
+                         <form action="/lang" method="post">
+                             @csrf
+                             <button type="submit" class="dropdown-item d-flex align-items-center">
+                                 <i class="bi bi-translate"></i>
+                                 @if (app()->getLocale() == 'id')
+                                     <span>Bahasa</span>
+                                 @else
+                                     <span>English</span>
+                                 @endif
+                             </button>
+                         </form>
+                     </li>
+
+                     <li>
                          <form action="/logout" method="post">
                              @csrf
                              <button type="submit" class="dropdown-item d-flex align-items-center">
                                  <i class="bi bi-box-arrow-right"></i>
-                                 <span>Keluar</span>
+                                 <span>@lang('layouts.topbar_logout')</span>
                              </button>
                          </form>
                      </li>
+
 
                  </ul><!-- End Profile Dropdown Items -->
              </li><!-- End Profile Nav -->

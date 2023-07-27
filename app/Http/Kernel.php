@@ -66,5 +66,6 @@ class Kernel extends HttpKernel
         'ceksesi' => \App\Http\Middleware\ceksesi::class,
         'ceklogin' => \App\Http\Middleware\ceklogin::class,
         'revalidate' => \App\Http\Middleware\revalidate::class,
+        'lang' => \App\Http\Middleware\langManager::class
     ];
 }

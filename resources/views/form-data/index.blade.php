@@ -37,7 +37,7 @@
     <main id="main" class="main">
 
         <div class="pagetitle">
-            <h1>Form Input
+            <h1>@lang('layouts.sidebar_form')
             </h1>
         </div><!-- End Page Title -->
 
@@ -50,24 +50,29 @@
                             <img src="{{ asset('build/assets/img/file.png') }}" class="img-preview"
                                 style="width: 120px; height: 150px; object-fit: cover;" id="img-element">
 
-                            <label for="file" id="excel_name">Nama Berkas</label>
+                            <label for="file" id="excel_name">@lang('page_input.label_berkas')</label>
 
                             <label class="btn btn-primary mt-2" id="prev_file">
-                                Upload Berkas
+                                @lang('page_input.btn_up')
                                 <input type="file" name="file" class="upload__inputfile" id="up_file"
                                     accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                                     onchange="previewFile()">
                             </label>
+                            {{-- <form class="row g-3 needs-validation" id="formACB" action="{{ route('pso.import') }}"
+                                method="post" novalidate>
+                                @csrf
+                                <input type="submit">
+                            </form> --}}
                             <a class="btn-info" href="#askModal" data-bs-toggle="modal" id="openModal"
                                 data-bs-target="#askModal">
-                                Panduan Unggah Berkas
+                                @lang('page_input.label_tutorial')
                             </a>
                         </div>
                     </div>
 
                     <div class="card">
                         <div class="card-body">
-                            <h5 class="card-title"> Berkas terakhir yang diunggah</h5>
+                            <h5 class="card-title">@lang('page_input.label_last')</h5>
 
                             <div class="activity">
                                 <div class="activity-item d-flex">
@@ -95,13 +100,12 @@
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link active" id="inputKlas-tab" data-bs-toggle="tab"
                                         data-bs-target="#input-klasifikasi" type="button" role="tab"
-                                        aria-controls="home" aria-selected="true">Skor Kualitas Minyak</button>
+                                        aria-controls="home" aria-selected="true">@lang('page_input.label_info_skor')</button>
                                 </li>
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link" id="inputAsli-tab" data-bs-toggle="tab"
                                         data-bs-target="#input-asli" type="button" role="tab" aria-controls="profile"
-                                        aria-selected="false">Nilai Hasil
-                                        Pengujian</button>
+                                        aria-selected="false">@lang('page_input.label_info_uji')</button>
                                 </li>
                             </ul>
                             <div class="tab-content" id="borderedTabContent">
@@ -115,7 +119,7 @@
                                             <div class="col-md-8 col-lg-9">
                                                 <input name="bdv" type="text" class="form-control range-data"
                                                     id="bdv" onkeypress="return isNumberKey(this, event);"
-                                                    placeholder="Masukkan nilai rentang 1-4">
+                                                    placeholder="@lang('page_input.label_input_skor')">
                                             </div>
                                         </div>
 
@@ -124,7 +128,7 @@
                                             <div class="col-md-8 col-lg-9">
                                                 <input name="water" type="text" class="form-control range-data"
                                                     id="water" onkeypress="return isNumberKey(this, event);"
-                                                    placeholder="Masukkan nilai rentang 1-4">
+                                                    placeholder="@lang('page_input.label_input_skor')">
                                             </div>
                                         </div>
 
@@ -133,7 +137,7 @@
                                             <div class="col-md-8 col-lg-9">
                                                 <input name="acidity" type="text" class="form-control range-data"
                                                     id="acidity" onkeypress="return isNumberKey(this, event);"
-                                                    placeholder="Masukkan nilai rentang 1-4">
+                                                    placeholder="@lang('page_input.label_input_skor')">
                                             </div>
                                         </div>
 
@@ -142,7 +146,7 @@
                                             <div class="col-md-8 col-lg-9">
                                                 <input name="ift" type="text" class="form-control range-data"
                                                     id="ift" onkeypress="return isNumberKey(this, event);"
-                                                    placeholder="Masukkan nilai rentang 1-4">
+                                                    placeholder="@lang('page_input.label_input_skor')">
                                             </div>
                                         </div>
 
@@ -151,7 +155,7 @@
                                             <div class="col-md-8 col-lg-9">
                                                 <input name="color" type="text" class="form-control range-data"
                                                     id="color" onkeypress="return isNumberKey(this, event);"
-                                                    placeholder="Masukkan nilai rentang 1-4">
+                                                    placeholder="@lang('page_input.label_input_skor')">
                                             </div>
                                         </div>
 
@@ -160,13 +164,13 @@
                                             <div class="col-md-8 col-lg-9">
                                                 <input name="target" type="text" class="form-control range-target"
                                                     id="target" onkeypress="return isNumberKey(this, event);"
-                                                    placeholder="Masukkan nilai rentang 1-4">
+                                                    placeholder="@lang('page_input.label_input_skor')">
                                             </div>
                                         </div>
 
                                         <div class="align-content-between">
-                                            <button type="submit" class="btn btn-success">Simpan</button>
-                                            <button type="reset" class="btn btn-warning">Bersihkan</button>
+                                            <button type="submit" class="btn btn-success">@lang('page_input.btn_save')</button>
+                                            <button type="reset" class="btn btn-warning">@lang('page_input.btn_clear')</button>
                                         </div>
                                     </form><!-- End Input Form  Awal -->
                                 </div>
@@ -181,7 +185,7 @@
                                             <div class="col-md-8 col-lg-9">
                                                 <input name="bdv_asli" type="text" class="form-control"
                                                     id="bdv_asli" onkeypress="return isNumberKey(this, event);"
-                                                    placeholder="Masukkan nilai asli (belum klasifikasi)">
+                                                    placeholder="@lang('page_input.label_input_uji')">
                                             </div>
                                         </div>
 
@@ -190,7 +194,7 @@
                                             <div class="col-md-8 col-lg-9">
                                                 <input name="water_asli" type="text" class="form-control"
                                                     id="water_asli" onkeypress="return isNumberKey(this, event);"
-                                                    placeholder="Masukkan nilai asli (belum klasifikasi)">
+                                                    placeholder="@lang('page_input.label_input_uji')">
                                             </div>
                                         </div>
 
@@ -199,7 +203,7 @@
                                             <div class="col-md-8 col-lg-9">
                                                 <input name="acidity_asli" type="text" class="form-control"
                                                     id="acidity_asli" onkeypress="return isNumberKey(this, event);"
-                                                    placeholder="Masukkan nilai asli (belum klasifikasi)">
+                                                    placeholder="@lang('page_input.label_input_uji')">
                                             </div>
                                         </div>
 
@@ -208,7 +212,7 @@
                                             <div class="col-md-8 col-lg-9">
                                                 <input name="ift_asli" type="text" class="form-control"
                                                     id="ift_asli" onkeypress="return isNumberKey(this, event);"
-                                                    placeholder="Masukkan nilai asli (belum klasifikasi)">
+                                                    placeholder=@lang('page_input.label_input_uji')">
                                             </div>
                                         </div>
 
@@ -217,7 +221,7 @@
                                             <div class="col-md-8 col-lg-9">
                                                 <input name="color_asli" type="text" class="form-control"
                                                     id="color_asli" onkeypress="return isNumberKey(this, event);"
-                                                    placeholder="Masukkan nilai asli (belum klasifikasi)">
+                                                    placeholder="@lang('page_input.label_input_uji')">
                                             </div>
                                         </div>
 
@@ -226,13 +230,13 @@
                                             <div class="col-md-8 col-lg-9">
                                                 <input name="target_asli" type="text" class="form-control"
                                                     id="target_asli" onkeypress="return isNumberKey(this, event);"
-                                                    placeholder="Masukkan nilai asli (belum klasifikasi)">
+                                                    placeholder="@lang('page_input.label_input_uji')">
                                             </div>
                                         </div>
 
                                         <div class="align-content-between">
-                                            <button type="submit" class="btn btn-success">Simpan</button>
-                                            <button type="reset" class="btn btn-warning">Bersihkan</button>
+                                            <button type="submit" class="btn btn-success">@lang('page_input.btn_save')</button>
+                                            <button type="reset" class="btn btn-warning">@lang('page_input.btn_clear')</button>
                                         </div>
                                     </form><!-- End Input Form  Awal -->
                                 </div>
@@ -262,22 +266,19 @@
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="staticBackdropLabel">Petunjuk</h5>
+                        <h5 class="modal-title" id="staticBackdropLabel">@lang('modal_input.title')</h5>
                         <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <p>Nilai Hasil
-                            Pengujian merupakan nilai murni hasil pengujian yang belum diklasifikasikan</p>
+                        <p>@lang('modal_input.info_uji')</p>
                         <div class="alert alert-warning alert-dismissible fade show text-left" role="alert">
                             <i class="bi bi-exclamation-octagon me-1"></i>
-                            <span class=""> contoh: bdv = 51.30, water = 18.99, acidity = 0.22, ift = 20.90, color =
-                                60.30</span>
+                            <span class=""> @lang('modal_input.ex_uji')</span>
                         </div>
-                        <p>Skor Kualitas Minyak merupakan nilai hasil
-                            pengujian yang sudah diklasifikasikan</p>
+                        <p>@lang('modal_input.info_skor')</p>
                         <div class="alert alert-primary alert-dismissible fade show text-left" role="alert">
                             <i class="bi bi-exclamation-octagon me-1"></i>
-                            <span class="">contoh: bdv = 1, water = 1, acidity = 4, ift = 3, color = 4</span>
+                            <span class="">@lang('modal_input.ex_skor')</span>
                         </div>
                     </div>
                 </div>
@@ -289,7 +290,7 @@
             <div class="modal-dialog" role="dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Konfirmasi</h5>
+                        <h5 class="modal-title">@lang('modal_input.confirm')</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <form class="row g-3 needs-validation" id="deleteAll-form" action="/" method="post" novalidate>
@@ -297,12 +298,12 @@
                         <div class="modal-body">
                             <div class="alert alert-primary alert-dismissible fade show text-center" role="alert">
                                 <i class="bi bi-exclamation-octagon me-1"></i>
-                                <span class=""> Apakah nilai di berkas sudah diklasifikasikan?</span>
+                                <span class="">@lang('modal_input.label_warn')</span>
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-success btn-ya">Sudah</button>
-                            <button type="button" class="btn btn-warning btn-tdk">Belum</button>
+                            <button type="button" class="btn btn-success btn-ya">@lang('modal_input.btn_acc')</button>
+                            <button type="button" class="btn btn-warning btn-tdk">@lang('modal_input.btn_re')</button>
                         </div>
                     </form>
                 </div>
@@ -331,6 +332,14 @@
         }
 
         function previewFile() {
+            var lang = "{{ app()->getLocale() }}";
+
+            if (lang === 'id') {
+                var notif = "Hanya boleh mengunggah berkas excel dengan ekstensi .xlsx!";
+            } else {
+                var notif = "Only allowed to upload excel files with .xlsx extension!";
+            }
+
             const excel = document.querySelector('#up_file');
             const excel_name = document.querySelector('#excel_name');
 
@@ -356,11 +365,19 @@
                     "progressBar": true,
                     "positionClass": "toast-top-right"
                 };
-                toastr.warning("Hanya boleh mengunggah berkas excel dengan ekstensi .xlsx!");
+                toastr.warning(notif);
             }
         }
 
         function upFile() {
+            var lang = "{{ app()->getLocale() }}";
+
+            if (lang === 'id') {
+                var notif = "Berhasil mengunggah berkas!";
+            } else {
+                var notif = "Successfully uploaded file!";
+            }
+
             var formData = new FormData();
             var excel = $('#up_file')[0].files;
             formData.append('file', excel[0]);
@@ -416,7 +433,7 @@
                     "progressBar": true,
                     "positionClass": "toast-top-right"
                 };
-                toastr.success("Berhasil mengunggah berkas!");
+                toastr.success(notif);
             }
 
             function showErrorToast(statusText) {
